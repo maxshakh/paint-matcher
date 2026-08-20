@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Анализ изображения → краски Vallejo / AK / Citadel / Army Painter / Scale75 / GSW</title>
+<style>
+  :root{--bg:#0f1216;--panel:#171b21;--panel2:#1e242c;--line:#2a323c;--txt:#e7ecf2;--muted:#93a0ad;--accent:#4a9de0;--accent2:#3a7d44;--chip:#232b34;}
+  :root[data-theme="light"]{--bg:#f4f6f9;--panel:#ffffff;--panel2:#eef1f5;--line:#d3d9e0;--txt:#1c2530;--muted:#5f6b78;--accent:#2f7fc7;--accent2:#2f7d44;--chip:#e7ecf2;}
+  .hdrbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .hdrbar .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .hdrbar .seg button{background:var(--panel2);color:var(--muted);border:none;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  .hdrbar .seg button.on{background:var(--accent);color:#fff}
+  .hdrbar .seg button:not(:last-child){border-right:1px solid var(--line)}
+  .hdrbar .lbl{font-size:11px;color:var(--muted);margin-right:2px}
+  /* light-theme overrides for elements with fixed dark colors */
+  :root[data-theme="light"] .cellrank.instock,:root[data-theme="light"] .rank.instock{background:#e3f4e8;box-shadow:inset 0 0 0 1px #6cbf86}
+  :root[data-theme="light"] .rtable th.stdth{background:#e5f2e9;color:#2f7d44;border-color:#bfe0c9}
+  :root[data-theme="light"] .rtable td.stdcol{background:#f0f7f2;border-color:#bfe0c9}
+  :root[data-theme="light"] .m.std{border-color:#6cbf86;background:#f0f7f2}
+  :root[data-theme="light"] .m.std .brand{color:#2f7d44}
+  :root[data-theme="light"] .std-tag{color:#2f7d44;background:#e5f2e9;border-color:#bfe0c9}
+  :root[data-theme="light"] .stock-tick{color:#2f9d52}
+  :root[data-theme="light"] .stock-legend{color:#2f9d52}
+  :root[data-theme="light"] .stock-legend .box{background:#e3f4e8;box-shadow:inset 0 0 0 1px #6cbf86}
+  :root[data-theme="light"] #drop.hover{background:#eef5fb}
+  :root[data-theme="light"] .sttable .del,:root[data-theme="light"] .stitem .del{background:#fbe3e3;color:#b34747;border-color:#e6bcbc}
+  :root[data-theme="light"] .modal-bg{background:#0006}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.45;padding:18px;max-width:1320px;margin:0 auto}
+  h1{font-size:20px;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20;background:var(--bg);padding-top:6px}
+  .tab{padding:9px 16px;cursor:pointer;font-size:14px;font-weight:600;color:var(--muted);border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0}
+  .tab.active{color:var(--txt);background:var(--panel);border-color:var(--line)}
+  .tabpage{display:none}.tabpage.active{display:block}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  h2{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  #drop{border:2px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted);transition:.15s;cursor:pointer;background:var(--panel2)}
+  #drop.hover{border-color:var(--accent);color:var(--txt);background:#1b2530}
+  #drop b{color:var(--txt)}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+  input[type=text]{flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:9px 11px;border-radius:8px;font-size:13px;outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  button{background:var(--accent);color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+  button.ghost{background:var(--chip);color:var(--txt);border:1px solid var(--line)}
+  button:hover{filter:brightness(1.08)}
+  label.small{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:10px}
+  input[type=range]{width:140px}
+  select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:8px 10px;border-radius:8px;font-size:13px;min-width:140px}
+  canvas{max-width:100%;border-radius:8px;border:1px solid var(--line);display:block;margin-top:10px}
+  .hint{font-size:11px;color:var(--muted);margin-top:8px}
+  #results{margin-top:16px}
+  .swatch-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+  .sc-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .bigsw{width:56px;height:56px;border-radius:10px;border:1px solid #0006;flex:none}
+  .sc-meta{font-size:13px}.sc-meta .hex{font-family:ui-monospace,Consolas,monospace;font-size:13px}.sc-meta .pct{color:var(--muted);font-size:12px}
+  .matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}
+  .m{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:8px}
+  .m .brand{font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:5px}
+  .m .prow{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+  .m .csw{width:22px;height:22px;border-radius:5px;border:1px solid #0006;flex:none}
+  .m .pname{font-size:11px;font-weight:600;line-height:1.15}
+  .m .pcode{font-family:ui-monospace,Consolas,monospace;font-size:9.5px;color:var(--muted)}
+  .m .de{font-size:9.5px;padding:0 5px;border-radius:5px;display:inline-block;font-weight:600}
+  .rank{display:flex;align-items:center;gap:6px;padding:3px 0;border-top:1px dashed #ffffff12}
+  .rank:first-of-type{border-top:none}
+  .rnum{font-size:9px;color:var(--muted);width:14px;flex:none}
+  .de-ok{background:#173b22;color:#5fd07d}.de-close{background:#3a3417;color:#e0c65f}.de-far{background:#3b1a1a;color:#e08a8a}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 14px}
+  .badge{font-size:11px;color:var(--muted)}
+  footer{color:var(--muted);font-size:11px;margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+  .empty{color:var(--muted);text-align:center;padding:30px;font-size:13px}
+  a{color:var(--accent)}
+  #reportBox{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:none}
+  .palette{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .pitem{position:relative;width:46px;height:46px;border-radius:8px;border:1px solid #0006}
+  .pitem span{position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;border-radius:50%;width:16px;height:16px;font-size:11px;line-height:16px;text-align:center;cursor:pointer;font-weight:700}
+  .rtable{width:100%;border-collapse:collapse;font-size:11px}
+  .rtable th,.rtable td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+  .rtable th{background:var(--panel2);color:var(--muted);font-weight:600;position:sticky;top:0;z-index:3;box-shadow:inset 0 -1px 0 var(--line),inset 0 1px 0 var(--line)}
+  .rtable td .mini{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid #0006;vertical-align:middle;margin-right:5px}
+  .mono{font-family:ui-monospace,Consolas,monospace}
+  .scrollx{overflow:auto;max-height:72vh}
+  /* --- frozen first column (paint names) --- */
+  .rtable td.firstcol{position:sticky;left:0;z-index:2;background:var(--panel);box-shadow:inset -2px 0 0 var(--line)}
+  .rtable th.firstcol{position:sticky;left:0;top:0;z-index:5;background:var(--panel2);box-shadow:inset -2px 0 0 var(--line),inset 0 -1px 0 var(--line),inset 0 1px 0 var(--line)}
+  .rtable td.assrc.firstcol:hover{background:#1b2530}
+  .cellrank{white-space:nowrap;padding:1px 0}
+  .de.clickde{cursor:pointer;text-decoration:underline dotted}
+  .de.clickde:hover{filter:brightness(1.25)}
+  .clicksw{cursor:pointer}
+  .clicksw:hover{outline:2px solid var(--accent);outline-offset:1px}
+  .assrc{cursor:pointer}
+  .rtable td.assrc:hover,.cellrank.assrc:hover,.rank.assrc:hover{background:#1b2530}
+  .cellrank.assrc,.rank.assrc{border-radius:6px;padding-left:2px}
+  .src-flash{animation:srcflash .9s ease}
+  @keyframes srcflash{0%{box-shadow:0 0 0 2px var(--accent) inset}100%{box-shadow:none}}
+  .nomatch{color:var(--muted);font-size:10px;padding:6px 2px;display:block}
+  /* --- modal dialog --- */
+  .modal-bg{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:999;padding:16px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:460px;width:100%;max-height:88vh;overflow:auto;padding:18px 18px 16px;box-shadow:0 12px 40px #000a}
+  .modal h3{font-size:16px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .modal .close{margin-left:auto;background:var(--chip);border:1px solid var(--line);color:var(--txt);width:28px;height:28px;border-radius:8px;font-size:15px;line-height:1;cursor:pointer;padding:0}
+  .modal .bigswatch{width:100px;height:100px;border-radius:12px;border:1px solid #0006;margin:4px auto 12px;display:block}
+  .modal .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;margin:8px 0}
+  .modal .kv .k{color:var(--muted)}
+  .modal .kv .v{font-family:ui-monospace,Consolas,monospace}
+  .modal .section{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+  .modal .section h4{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px}
+  .lab-legend{font-size:12px;color:var(--muted);line-height:1.5}
+  .lab-legend b{color:var(--txt)}
+  .delta-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px dashed #ffffff12}
+  .delta-row .dv{font-family:ui-monospace,Consolas,monospace;font-weight:600}
+  .delta-row .di{color:var(--muted);font-size:11px}
+  .mix-chip{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-top:6px;font-size:12px}
+  .mix-chip .csw2{width:22px;height:22px;border-radius:5px;border:1px solid #0006;flex:none}
+  .mix-chip .pc{font-weight:700;color:var(--accent);margin-right:4px}
+  .modal .swtitle{text-align:center;font-size:14px;font-weight:700;margin-bottom:2px}
+  .modal .swsub{text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px}
+  /* --- standard (RAL / FS) columns --- */
+  .rtable th.stdth{background:#16241b;color:#7fd0a0;border-color:#2e4a38}
+  .rtable td.stdcol{background:#111a14;border-color:#2e4a38}
+  .rtable th.sep,.rtable td.sep{border-left:2px solid #3a7d44}
+  .m.std{border-color:#3a7d44;background:#111a14}
+  .m.std .brand{color:#7fd0a0}
+  .std-tag{font-size:8px;letter-spacing:.3px;text-transform:uppercase;color:#7fd0a0;background:#16241b;border:1px solid #2e4a38;border-radius:4px;padding:0 4px;margin-left:5px;font-weight:700}
+  /* --- draggable columns --- */
+  .rtable th.draggable{cursor:grab;user-select:none;position:sticky;top:0;z-index:3}
+  .rtable th.draggable:active{cursor:grabbing}
+  .rtable th.drag-over{outline:2px dashed var(--accent);outline-offset:-2px}
+  .rtable th.dragging{opacity:.45}
+  .draghint{font-size:11px;color:var(--muted);margin:2px 0 8px}
+  .draghint b{color:var(--accent)}
+  .crossctl{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 10px}
+  .crossctl .stock-toggle{margin-left:0}
+  .crossctl input[type=number]{width:72px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;margin-left:4px}
+  /* --- stock / warehouse tab --- */
+  /* linear add form */
+  .stform{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .stform select,.stform input[type=text]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:9px 11px;border-radius:8px;font-size:13px;outline:none}
+  .stform select{min-width:170px}
+  .stform #stCode{flex:1;min-width:170px}
+  .stform #stName{flex:1;min-width:170px;background:var(--panel);color:var(--muted)}
+  .stform-sw{width:34px;height:34px;border-radius:8px;border:1px solid #0006;flex:none;display:inline-block}
+  /* stock table */
+  .sttable th{cursor:pointer;user-select:none;white-space:nowrap}
+  .sttable th .arr{color:var(--accent);font-size:10px;margin-left:3px}
+  .sttable td .mini{cursor:pointer}
+  .sttable td.actcol{text-align:center;white-space:nowrap}
+  .sttable .del{background:#3b1a1a;color:#e08a8a;border:1px solid #5a2a2a;border-radius:6px;width:24px;height:24px;font-size:13px;cursor:pointer;padding:0;vertical-align:middle}
+  .sttable .del:hover{filter:brightness(1.2)}
+  .sttable .srcbtn{background:var(--chip);color:var(--txt);border:1px solid var(--line);border-radius:6px;width:26px;height:24px;font-size:12px;cursor:pointer;padding:0;margin-right:4px;vertical-align:middle}
+  .sttable .srcbtn:hover{filter:brightness(1.15)}
+  .stpreview-sw{display:inline-block;width:44px;height:44px;border-radius:8px;border:1px solid #0006;vertical-align:middle;margin-right:8px}
+  /* sources tab */
+  .srch{font-size:14px;margin:16px 0 8px;color:var(--accent2);border-bottom:1px solid var(--line);padding-bottom:5px}
+  .srclist{list-style:none;padding:0;margin:0}
+  .srclist li{font-size:13px;line-height:1.55;padding:5px 0;border-bottom:1px dashed #ffffff10}
+  .srclist a{color:var(--accent);text-decoration:none}
+  .srclist a:hover{text-decoration:underline}
+  .appfoot{text-align:center;color:var(--muted);font-size:11px;margin:14px 0 4px}
+  #stBrand{min-width:220px}
+
+  /* --- in-stock highlight in comparison table --- */
+  .cellrank.instock,.rank.instock{background:#132a1c;box-shadow:inset 0 0 0 1px #3a7d44;border-radius:6px}
+  td.firstcol.instock{box-shadow:inset -2px 0 0 var(--line),inset 0 0 0 1px #3a7d44!important}
+  .m.instock{border-color:#3a7d44;box-shadow:0 0 0 1px #3a7d44 inset}
+  .stock-tick{display:inline-block;color:#5fd07d;font-weight:700;font-size:11px;margin-left:3px;vertical-align:middle;cursor:help}
+  .stock-toggle{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:5px;margin-left:6px}
+  .stock-legend{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#5fd07d}
+  .stock-legend .box{width:12px;height:12px;border-radius:3px;background:#132a1c;box-shadow:inset 0 0 0 1px #3a7d44;display:inline-block}
+  .nostockhi .cellrank.instock,.nostockhi .rank.instock{background:transparent;box-shadow:none}
+  .nostockhi td.firstcol.instock{box-shadow:inset -2px 0 0 var(--line)!important}
+  .nostockhi .m.instock{border-color:var(--line);box-shadow:none}
+  .nostockhi .stock-tick{display:none}
+</style>
+</head>
+<body>
+  <div class="hdrbar">
+    <span class="lbl" data-i18n="lang">Язык:</span>
+    <span class="seg" id="langSeg"><button data-lang="ru">RUS</button><button data-lang="en">ENG</button></span>
+    <span style="flex:1"></span>
+    <span class="lbl" data-i18n="theme">Тема:</span>
+    <span class="seg" id="themeSeg"><button data-theme="dark" data-i18n="theme_dark">Тёмная</button><button data-theme="light" data-i18n="theme_light">Светлая</button><button data-theme="system" data-i18n="theme_system">Системная</button></span>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="analyze" data-i18n="tab_analyze">🖼️ Анализ изображения</div>
+    <div class="tab" data-tab="cross" data-i18n="tab_cross">🔀 Таблица соответствий (топ-3)</div>
+    <div class="tab" data-tab="stock" data-i18n="tab_stock">🗄️ Мой склад</div>
+    <div class="tab" data-tab="sources" data-i18n="tab_sources">📚 Источники данных</div>
+  </div>
+
+  <div class="tabpage active" id="tab-analyze">
+    <div class="grid">
+      <div class="panel">
+        <h2 data-i18n="h2_load">1️⃣ Загрузка изображения</h2>
+        <div id="drop"><div data-i18n="drop_text">📁 Перетащи файл, <b>кликни</b> для выбора,<br>или <b>вставь из буфера</b> (Ctrl/⌘+V)</div></div>
+        <input type="file" id="file" accept="image/*" hidden>
+        <div class="row"><input type="text" id="url" data-i18n-ph="url_ph" placeholder="https://... ссылка на изображение"><button id="loadUrl" data-i18n="btn_load">Загрузить</button></div>
+        <div class="hint" data-i18n="hint_cors">💡 Для ссылок нужен доступ CORS, иначе цвета не считаются — тогда скачай файл и перетащи его.</div>
+        <canvas id="preview" width="10" height="10" style="display:none"></canvas>
+        <div id="pickHint" class="hint" style="display:none" data-i18n="pick_hint">🖌️ <b>Пипетка активна</b> (усреднение 5×5): наведи для предпросмотра, кликни — чтобы зафиксировать; затем «➕ В отчёт».</div>
+        <div id="pickResult" style="display:none;margin-top:10px"></div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="h2_params">2️⃣ Параметры анализа</h2>
+        <label class="small"><span data-i18n="lbl_ncolors">Число цветов:</span> <b id="kVal">6</b><input type="range" id="k" min="3" max="12" value="6"></label>
+        <label class="small"><span data-i18n="lbl_trim">Игнорировать почти-белый/чёрный фон</span> <input type="checkbox" id="trim" checked></label>
+        <label class="small"><span data-i18n="lbl_showde">Показывать ΔE у совпадений</span> <input type="checkbox" id="showDe" checked></label>
+        <label class="small"><span data-i18n="lbl_maxde">Максимальный ΔE:</span> <input type="number" id="maxDe" min="1" max="50" step="0.5" value="10" style="width:74px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:6px 8px;border-radius:8px;font-size:13px;outline:none"></label>
+        <div class="row"><button id="analyze" data-i18n="btn_analyze">🔍 Анализировать</button><button class="ghost" id="pickBtn">🖌️ Пипетка: выкл</button><button class="ghost" id="sample" data-i18n="btn_sample">Пример</button></div>
+        <div class="hint" style="margin-top:12px" data-i18n="hint_analyze">В анализе — лучший аналог на бренд (8 линеек). Топ-3 — во вкладке соответствий.</div>
+      </div>
+    </div>
+    <div class="toolbar" id="toolbar" style="display:none">
+      <span class="badge" data-i18n="legend_de">Легенда ΔE:</span><span class="de de-ok" data-i18n="de_ok">≤2 отличное</span><span class="de de-close" data-i18n="de_close">2–5 близкое</span><span class="de de-far" data-i18n="de_far">&gt;5 заметная разница</span>
+      <span style="flex:1"></span><button class="ghost" id="copyAll" data-i18n="btn_copy">📋 Копировать</button><button class="ghost" id="printBtn" data-i18n="btn_print">🖨️ Печать / PDF</button>
+    </div>
+    <div id="results"><div class="empty" data-i18n="results_empty">Загрузи изображение и нажми «Анализировать».</div></div>
+    <div id="reportBox">
+      <h2 data-i18n="h2_report">🧺 Собранная палитра (отчёт)</h2>
+      <div class="palette" id="palette"></div>
+      <div class="scrollx"><table class="rtable" id="rtable"></table></div>
+      <div class="row"><button class="ghost" id="repCopy" data-i18n="btn_copy">📋 Копировать</button><button class="ghost" id="repCsv" data-i18n="btn_csv">⬇️ CSV</button><button class="ghost" id="repClear" data-i18n="btn_clear">🗑️ Очистить</button><button class="ghost" id="repPrint" data-i18n="btn_print">🖨️ Печать/PDF</button></div>
+    </div>
+  </div>
+
+  <div class="tabpage" id="tab-cross">
+    <div class="panel">
+      <h2 data-i18n="h2_cross">🔀 Соответствие красок — топ-3 аналога в каждой линейке</h2>
+      <div class="row"><span class="badge" data-i18n="lbl_source">Источник:</span><select id="srcBrand"></select><select id="srcType" style="display:none"></select><input type="text" id="paintSearch" data-i18n-ph="search_ph" placeholder="🔎 фильтр по названию/номеру"><select id="srcPaint"></select></div>
+      <div class="row" style="margin-top:6px"><span class="badge" data-i18n="lbl_exclude">Исключить из совпадений (Citadel):</span>
+        <label class="small" style="margin-top:0"><input type="checkbox" id="exShade"> Shade (washes)</label>
+        <label class="small" style="margin-top:0"><input type="checkbox" id="exContrast"> Contrast</label>
+        <label class="small" style="margin-top:0"><input type="checkbox" id="exMetal"> Metal</label>
+      </div>
+      <div class="hint" data-i18n="hint_cross">Выбери краску — ниже <b>по 3 ближайших аналога</b> в каждой хобби-линейке, а также <b>отдельные колонки-стандарты</b> <b style="color:#7fd0a0">RAL Classic</b> и <b style="color:#7fd0a0">FS 595</b> (топ-2 ближайших кода). Фильтр типа <b>Citadel</b> появляется, когда источник = Citadel.</div>
+      <div id="crossOne" style="margin-top:14px"></div>
+    </div>
+    <div class="toolbar">
+      <span class="badge" data-i18n="lbl_fulltable">Полная таблица (топ-3) для линейки:</span><select id="tableBrand"></select><select id="tblType" style="display:none"></select><button id="buildTable" data-i18n="btn_build">📋 Построить</button>
+      <span style="flex:1"></span><button class="ghost" id="xCsv" data-i18n="btn_csv">⬇️ CSV</button><button class="ghost" id="xPrint" data-i18n="btn_print">🖨️ Печать/PDF</button>
+    </div>
+    <div class="draghint" data-i18n="draghint">🖱️ Колонки можно <b>перетаскивать</b> за заголовок. 👆 Клик по любой краске (строке или ячейке-аналогу) — <b>сделать её «Источником»</b> вверху; клик по <b>образцу</b> — зум, по <b>ΔE</b> — разбор различий.</div>
+    <div class="crossctl">
+      <span class="stock-legend"><span class="box"></span> <span data-i18n="legend_instock">есть на складе ✓</span></span>
+      <label class="stock-toggle"><input type="checkbox" id="stockHi" checked> <span data-i18n="stock_hi">подсветка склада</span></label>
+      <label class="stock-toggle"><input type="checkbox" id="stockOnly"> <span data-i18n="stock_only">только со склада</span></label>
+      <label class="stock-toggle"><span data-i18n="maxde_cross">Макс. ΔE:</span> <input type="number" id="maxDeCross" min="1" max="50" step="0.5" value="10"></label>
+      <span style="flex:1"></span>
+      <button class="ghost" id="resetCols" style="padding:4px 10px;font-size:11px" data-i18n="btn_resetcols">↩︎ Сброс порядка</button>
+    </div>
+    <div class="scrollx"><table class="rtable" id="crossTable"></table></div>
+  </div>
+
+  <div class="tabpage" id="tab-stock">
+    <div class="panel">
+      <h2 data-i18n="h2_addstock">➕ Добавить краску на склад</h2>
+      <div class="stform">
+        <select id="stBrand" data-i18n-title="st_manuf" title="Производитель"></select>
+        <input type="text" id="stCode" list="stCodeList" data-i18n-ph="code_ph" placeholder="Номер (напр. 70.951 / RAL 3020 / AK11033)" autocomplete="off"><datalist id="stCodeList"></datalist>
+        <input type="text" id="stName" data-i18n-ph="name_ph" placeholder="Название (из каталога)" readonly>
+        <span id="stSwatch" class="stform-sw" style="background:transparent"></span>
+        <button id="stAdd" data-i18n="btn_add">➕ Добавить</button>
+        <button class="ghost" id="stClear" data-i18n="btn_clear_stock">🗑️ Очистить</button>
+      </div>
+      <div id="stPreview" class="hint" style="margin-top:8px"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <h2 style="margin:0"><span data-i18n="h2_instock">🗄️ На складе:</span> <span id="stCount">0</span></h2>
+        <div class="row" style="margin:0;gap:8px">
+          <input type="text" id="stFilter" data-i18n-ph="filter_ph" placeholder="🔎 фильтр по названию / номеру / производителю" style="min-width:240px">
+          <button class="ghost" id="stExport" data-i18n="btn_export">⬇️ Экспорт JSON</button>
+          <button class="ghost" id="stImportBtn" data-i18n="btn_import">⬆️ Импорт JSON</button>
+          <input type="file" id="stImport" accept="application/json,.json" hidden>
+        </div>
+      </div>
+      <div class="scrollx" style="margin-top:12px"><table class="rtable sttable" id="stTable"></table></div>
+      <div id="stEmpty" class="empty" style="margin-top:12px" data-i18n="st_empty">Склад пуст. Добавь краски через форму выше.</div>
+    </div>
+  </div>
+
+  <div class="tabpage" id="tab-sources">
+    <div class="panel">
+      <h2 data-i18n="h2_sources">📚 Источники данных</h2>
+      <div class="hint" style="margin-bottom:12px" data-i18n="src_intro">Каждая линейка приведена к достоверным данным: пары «номер↔название» — из официальных каталогов производителей, HEX — из измеренных свотчей сообщества (краска нанесена, сфотографирована, усреднена) либо из привязок к промышленным стандартам RAL/RLM/FS. Металлики заданы средними тонами по типу металла (условно). Ниже — все использованные источники.</div>
+
+      <h3 class="srch" data-i18n="src_h_measured">🎨 Измеренные HEX (свотчи)</h3>
+      <ul class="srclist">
+        <li><b>Citadel</b> (Base + Layer) — Tale of Painters swatches, датасет <a href="https://github.com/SimoGecko/CitadelColours" target="_blank" rel="noopener">SimoGecko/CitadelColours</a> (краска нанесена, сфотографирована, усреднена).</li>
+        <li><b>Vallejo Model Color</b> — <a href="https://basecoatlab.com/ranges/vallejo-model-color" target="_blank" rel="noopener">Basecoat Lab · Model Color</a> (measured swatches).</li>
+        <li><b>Vallejo Game Color</b> — <a href="https://basecoatlab.com/ranges/vallejo-game-color" target="_blank" rel="noopener">Basecoat Lab · Game Color</a> (значения зеркалятся на Game Air).</li>
+        <li><b>AK Interactive 3rd Generation</b> — <a href="https://basecoatlab.com/ranges/ak-3rd-generation" target="_blank" rel="noopener">Basecoat Lab · 3rd Gen Acrylic</a>.</li>
+        <li><b>The Army Painter — Warpaints Fanatic</b> — <a href="https://basecoatlab.com/ranges/army-painter-warpaints-fanatic" target="_blank" rel="noopener">Basecoat Lab · Warpaints Fanatic</a>.</li>
+        <li><b>Scale75 — Scalecolor</b> — <a href="https://basecoatlab.com/ranges/scale75-scalecolor" target="_blank" rel="noopener">Basecoat Lab · Scalecolor</a>.</li>
+        <li><b>Green Stuff World — Maxx Formula</b> — <a href="https://basecoatlab.com/ranges/green-stuff-world-maxx-formula" target="_blank" rel="noopener">Basecoat Lab · Maxx Formula</a>.</li>
+      </ul>
+
+      <h3 class="srch" data-i18n="src_h_catalog">🗂️ Каталожные HEX (справочные)</h3>
+      <ul class="srclist">
+        <li><b>Vallejo Model Air</b> — <a href="https://www.paint-vault.com/brand/vallejo/model-air" target="_blank" rel="noopener">Paint Vault · Model Air</a> (полный список 251 цвет, номера и названия). ⚠️ <b>Измеренных свотчей Model Air нет</b> ни в Basecoat Lab, ни в других открытых датасетах. Поэтому для военных тонов HEX взят из привязок <b>RAL/RLM/FS</b> (авторитетно), для части базовых цветов (Fire Red, Ferrari Red, Orange, Steel Blue и т.п.) — <b>каталожно-приблизительный</b> (по печатной карте/Paint Vault). Эти значения помечены как ориентировочные — проверяйте сухим мазком.</li>
+        <li><b>Общий справочник</b> — <a href="https://www.paint-vault.com/" target="_blank" rel="noopener">paint-vault.com</a> (кросс-бренд эквиваленты и палитры).</li>
+      </ul>
+
+      <h3 class="srch" data-i18n="src_h_official">📖 Официальные каталоги (номера и названия)</h3>
+      <ul class="srclist">
+        <li><b>Vallejo Model Color / Model Air</b> — офиц. чарт <a href="https://acrylicosvallejo.com/wp-content/uploads/2024/03/CC329-R00-Model-Color-NewIC.pdf" target="_blank" rel="noopener">CC329 (Model Color, PDF)</a> и таблица эквивалентов RAL/RLM/FS/ANA (CC340).</li>
+        <li><b>Vallejo</b> — общий сайт <a href="https://acrylicosvallejo.com/en/" target="_blank" rel="noopener">acrylicosvallejo.com</a>.</li>
+        <li><b>AK Interactive 3rd Gen</b> — офиц. цветовая карта и таблица эквивалентности (коды AK11001–AK11236).</li>
+        <li><b>The Army Painter</b> — <a href="https://thearmypainter.com/" target="_blank" rel="noopener">thearmypainter.com</a>.</li>
+        <li><b>Games Workshop / Citadel</b> — <a href="https://www.games-workshop.com/" target="_blank" rel="noopener">games-workshop.com</a>.</li>
+        <li><b>Scale75</b> — <a href="https://scale75.com/" target="_blank" rel="noopener">scale75.com</a> · <b>Green Stuff World</b> — <a href="https://www.greenstuffworld.com/" target="_blank" rel="noopener">greenstuffworld.com</a>.</li>
+      </ul>
+
+      <h3 class="srch" data-i18n="src_h_std">🏭 Промышленные стандарты</h3>
+      <ul class="srclist">
+        <li><b>RAL Classic</b> — стандартные sRGB-эквиваленты палитры RAL (полный набор, включая RAL 7028 Dunkelgelb).</li>
+        <li><b>FS 595</b> — Federal Standard 595 (авиационные/военные цвета).</li>
+        <li><b>RLM</b> — референсные значения Luftwaffe RLM (для военных тонов Model Air / AK).</li>
+      </ul>
+
+      <div class="hint" style="margin-top:14px" data-i18n="src_note">⚠️ Измеренные свотчи — приближение к реальной банке, но существенно точнее печатных каталогов и генеративных оценок. Металлики одним HEX точно не передаются (блеск/отражения) — используйте средние тоны как ориентир и проверяйте сухим мазком.</div>
+    </div>
+  </div>
+
+  <footer data-i18n="footer">Работает офлайн. Линейки: Vallejo (Model Color / Model Air / Game Color / Game Air), AK 3rd Gen, Citadel, Army Painter, Scale75, GSW, плюс промышленные стандарты <b>RAL Classic</b> (полный, включая RAL 7028 Dunkelgelb) и <b>FS 595</b>. 💡 Клик по <b>образцу</b> — свотч 100×100 с подписью «производитель — название — номер»; клик по <b>ΔE</b> — разбор dL/da/db с легендой CIELAB и подсказкой по смешиванию. Ползунок «Максимальный ΔE» скрывает далёкие совпадения; колонки в таблице соответствий можно перетаскивать. 🗄️ Вкладка «Мой склад» хранит имеющиеся у вас краски (офлайн, в браузере). HEX — из измеренных свотчей сообщества и стандартов RAL/RLM/FS (см. вкладку «Источники данных»); металлики — усреднённые тона. Финальная проверка — сухим мазком.</footer>
+  <div class="appfoot">© maxshakh &amp; Opus, 2026</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalBox"></div></div>
+
+<script>
+const PAINTS = {
+ "Model Color": [
+  ["White","70.951","#FFFFFF"],["Off-White","70.820","#F4EDE7"],["Ivory","70.918","#EBE2D1"],["Deep Yellow","70.915","#F1C701"],["Flat Yellow","70.953","#F6BA35"],["Golden Yellow","70.948","#f0a81a"],["Orange Brown","70.981","#AC633A"],["Light Orange","70.911","#ED7326"],["Vermilion","70.909","#C42A28"],["Flat Red","70.957","#A12B29"],["Red","70.926","#792825"],["Carmine Red","70.908","#97211F"],["Cavalry Brown","70.982","#84443A"],["Hull Red","70.985","#5C383A"],["Mahogany Brown","70.846","#79504A"],["Chocolate Brown","70.872","#58443D"],["Flat Brown","70.984","#703F38"],["Beige Brown","70.875","#816041"],["Leather Brown","70.871","#594335"],["Dark Rust","70.771","#3B2625"],["Burnt Umber","70.941","#513B2E"],["Tan Earth","70.874","#997457"],["Buff","70.976","#D7AF4D"],["Dark Sand","70.847","#CBA868"],["Iraqi Sand","70.819","#B4935E"],["Green Ochre","70.914","#A08035"],["Dark Yellow","70.978","#908738"],["Khaki","70.988","#6F5F3B"],["Deck Tan","70.986","#ABA390"],["Green Yellow","70.881","#6E653C"],["Olive Green","70.967","#516238"],["Camouflage Olive Green","70.894","#3C3D2F"],["Reflective/Refractive Green","70.890","#3f5b3f"],["Camouflage Dark Green","70.979","#263123"],["Deep Green","70.970","#1B4B31"],["Dark Sea Green","70.868","#4B4545"],["Intermediate Green","70.891","#506642"],["Emerald","70.838","#006249"],["Sky Blue","70.961","#74B8CF"],["Blue","70.925","#372C4C"],["Ultramarine","70.839","#20347a"],["Prussian Blue","70.965","#3B405D"],["Dark Prussian Blue","70.899","#372741"],["Dark Blue","70.930","#273461"],["Gunmetal Blue","70.800","#40454F"],["Turquoise","70.966","#0C425A"],["Dark Sea Blue","70.898","#262C38"],["Violet","70.960","#3C2C49"],["Purple","70.959","#533152"],["Magenta","70.945","#903153"],["Black","70.950","#231D1D"],["Black Grey","70.862","#2F2822"],["German Grey","70.995","#2E2E2C"],["Neutral Grey","70.992","#61615F"],["Basalt Grey","70.869","#5C5A5D"],["Pale Grey Blue","70.907","#A7B6B3"],["London Grey","70.836","#696363"],["Light Grey","70.990","#919294"],["Silver Grey","70.883","#B5B7B9"],["Oily Steel","70.865","#6C6E70"],["Gunmetal","70.863","#484C50"],["Silver","70.997","#A8AAAD"],["Gold","70.996","#C4A24A"],["Brass","70.801","#B08E42"],["Copper","70.999","#A55E38"],["Basic Skin Tone","70.815","#E9AC8D"],["Dark Flesh","70.927","#D3933B"]
+ ],
+ "Game Color": [
+  ["Dead White","72.001","#FFFFFF"],["Bone White","72.034","#D4C9A9"],["Bald Moon Yellow","72.005","#f4cf35"],["Sun Yellow","72.006","#F49304"],["Gold Yellow","72.007","#f09a1e"],["Orange Fire","72.008","#E9531E"],["Hot Orange","72.009","#D8311E"],["Bloody Red","72.010","#AA1F18"],["Gory Red","72.011","#611716"],["Warlord Purple","72.014","#7F223D"],["Hexed Lichen","72.015","#341938"],["Night Blue","72.019","#0F0F1B"],["Imperial Blue","72.020","#132033"],["Ultramarine Blue","72.022","#1B224C"],["Magic Blue","72.021","#143D7D"],["Electric Blue","72.023","#006C88"],["Falcon Turquoise","72.024","#1f7a86"],["Foul Green","72.026","#156D54"],["Scurvy Green","72.030","#003427"],["Goblin Green","72.028","#44502A"],["Sick Green","72.029","#3B5B32"],["Escorpena Green","72.032","#2f5f45"],["Dark Green","72.147","#122418"],["Livery Green","72.033","#8fae4a"],["Camouflage Green","72.031","#6D6127"],["Earth","72.041","#563E26"],["Beasty Brown","72.043","#55371B"],["Charred Brown","72.045","#281B15"],["Parasite Brown","72.037","#6E3C19"],["Leather Brown","72.040","#4E3413"],["Khaki","72.061","#776247"],["Heavy Grey","72.048","#5a6066"],["Wolf Grey","72.047","#96B4BC"],["Stonewall Grey","72.049","#625E5B"],["Ghost Grey","72.052","#c3c8cb"],["Black","72.051","#000000"],["Chainmail Silver","72.053","#A8AAAD"],["Gunmetal Metal","72.054","#484C50"],["Brassy Brass","72.056","#B08E42"],["Glorious Gold","72.055","#C4A24A"],["Hammered Copper","72.057","#A55E38"],["Dwarven Bronze","72.059","#8A5A34"]
+ ],
+ "Game Air": [
+  ["Dead White","72.701","#FFFFFF"],["Bone White","72.734","#D4C9A9"],["Moon Yellow","72.705","#EEB800"],["Sun Yellow","72.706","#F49304"],["Gold Yellow","72.707","#f09a1e"],["Orange Fire","72.708","#E9531E"],["Hot Orange","72.709","#D8311E"],["Bloody Red","72.710","#AA1F18"],["Gory Red","72.711","#611716"],["Warlord Purple","72.714","#7F223D"],["Night Blue","72.719","#0F0F1B"],["Imperial Blue","72.720","#132033"],["Magic Blue","72.721","#143D7D"],["Ultramarine Blue","72.722","#1B224C"],["Electric Blue","72.723","#006C88"],["Falcon Turquoise","72.724","#1f7a86"],["Foul Green","72.726","#156D54"],["Goblin Green","72.728","#44502A"],["Sick Green","72.729","#3B5B32"],["Scurvy Green","72.730","#003427"],["Camouflage Green","72.731","#6D6127"],["Earth","72.741","#563E26"],["Beasty Brown","72.743","#55371B"],["Charred Brown","72.745","#281B15"],["Leather Brown","72.740","#4E3413"],["Khaki","72.761","#776247"],["Heavy Grey","72.751","#5a6066"],["Wolf Grey","72.747","#96B4BC"],["Stonewall Grey","72.749","#625E5B"],["Ghost Grey","72.752","#c3c8cb"],["Black","72.750","#000000"],["Chainmail Silver","72.753","#A8AAAD"],["Gunmetal","72.754","#484C50"],["Glorious Gold","72.755","#C4A24A"],["Brassy Brass","72.756","#B08E42"],["Hammered Copper","72.757","#A55E38"]
+ ],
+ "AK 3rd Gen": [
+  ["White","AK11001","#FFFFFF"],["Offwhite","AK11002","#F2F2E8"],["White Grey","AK11003","#E4E4E4"],["Ivory","AK11004","#F2EDD9"],["Greenish White","AK11005","#E1EBD2"],["Rock Grey","AK11007","#B1ADA2"],["Grimy Grey","AK11008","#D9CFB4"],["Medium Grey","AK11010","#AFBDBD"],["Blue Grey","AK11011","#9BB3B5"],["Pale Grey","AK11013","#939AA2"],["Medium Sea Grey","AK11014","#9CA296"],["Dark Sea Grey","AK11015","#555150"],["Grey-Green","AK11016","#797A68"],["Neutral Grey","AK11018","#565F66"],["English Grey","AK11020","#69737D"],["Basalt Grey","AK11021","#525B62"],["Lead Grey","AK11023","#2D3739"],["Ash Grey","AK11024","#3D4144"],["German Grey","AK11025","#333438"],["Black","AK11029","#212322"],["Beige","AK11030","#E4C78F"],["Buff","AK11031","#DAC188"],["Pale Sand","AK11032","#E2D3AC"],["Dark Sand","AK11033","#CAB17B"],["Medium Sand","AK11034","#BE955D"],["Sand Yellow","AK11035","#DAB56E"],["Ice Yellow","AK11036","#EFE5AA"],["Pale Yellow","AK11038","#F2E08E"],["Sahara Yellow","AK11040","#B48744"],["Yellow","AK11044","#FDCB36"],["Deep Yellow","AK11045","#FFD01E"],["Lemon Yellow","AK11047","#EAE026"],["Light Flesh","AK11050","#FAE5D4"],["Basic Skin Tone","AK11052","#F9CBAA"],["Medium Flesh Tone","AK11054","#C0834A"],["Sunny Skin Tone","AK11055","#EDA968"],["Dark Flesh","AK11056","#DA9B4C"],["Salmon","AK11061","#EE9E93"],["Old Rose","AK11062","#D7868F"],["Beige Red","AK11064","#B77157"],["Magenta","AK11067","#9A0049"],["Blue Violet","AK11070","#5E4DAB"],["Lilac","AK11071","#4E6EBB"],["Purple","AK11073","#3F2C7E"],["Deep Purple","AK11074","#511E95"],["Violet Red","AK11075","#422A4E"],["Light Orange","AK11077","#EE7723"],["Medium Orange","AK11078","#E94C21"],["Deep Orange","AK11080","#E95925"],["Cadmium Red","AK11085","#E95030"],["Amaranth Red","AK11086","#CF4E27"],["Scarlet Red","AK11087","#CE3B27"],["Deep Red","AK11088","#E3201C"],["Blood Red","AK11089","#B51D1A"],["Vermillion","AK11090","#AF2E19"],["Carmine","AK11091","#A6381F"],["Matt Red","AK11092","#B4321C"],["Brick Red","AK11093","#9F2C25"],["Bordeaux Red","AK11094","#9A4042"],["Wine Red","AK11096","#691610"],["Burnt Red","AK11097","#533125"],["Black Red","AK11098","#42271E"],["Light Brown","AK11100","#CF8137"],["Orange Brown","AK11101","#974E19"],["Deep Brown","AK11102","#834B28"],["Saddle Brown","AK11104","#7B4636"],["Mahogany Brown","AK11106","#612B0F"],["Hull Red","AK11108","#341C10"],["Dark Brown","AK11109","#3D2813"],["Leather Brown","AK11110","#44321E"],["Burnt Umber","AK11111","#1B2117"],["Deck Tan","AK11114","#CCC4AD"],["Light Earth","AK11115","#D0B57E"],["Ochre","AK11118","#D09C0A"],["Cork","AK11119","#9E6337"],["Tan Earth","AK11121","#7C5B32"],["Green Ochre","AK11122","#A98144"],["Middle Stone","AK11124","#8B7029"],["Green-Brown","AK11126","#705A21"],["British Khaki","AK11127","#66491D"],["Luminous Green","AK11128","#D6D434"],["Green-Grey","AK11132","#D2D4BC"],["Green Sky","AK11134","#87AE77"],["Faded Green","AK11135","#7A8670"],["Frog Green","AK11136","#97B821"],["Lime Green","AK11137","#809D29"],["Interior Yellow Green","AK11138","#BFA905"],["Grass Green","AK11140","#62832C"],["Deep Green","AK11142","#04622D"],["Emerald","AK11144","#005842"],["Dark Green","AK11146","#1E522C"],["Olive Green","AK11147","#4D6124"],["Medium Olive Green","AK11148","#405423"],["Intermediate Green","AK11149","#4E7534"],["Gunship Green","AK11150","#404A2F"],["Extra Dark Green","AK11153","#243024"],["German Field Grey","AK11154","#413E2D"],["Camouflage Green","AK11156","#4E4228"],["US Dark Green","AK11157","#3E3B1C"],["Russian Green","AK11159","#282917"],["Black Green","AK11160","#172116"],["Pale Blue","AK11161","#AFC1B5"],["French Blue","AK11166","#47504F"],["Anthracite Grey","AK11167","#1E2C2D"],["Turquoise","AK11171","#004A4D"],["Sky Blue","AK11175","#87C2D4"],["Deep Sky Blue","AK11176","#65B3C7"],["Ultramarine","AK11179","#25367B"],["Imperial Blue","AK11180","#262E5F"],["Dark Blue","AK11181","#242C5A"],["Deep Blue","AK11182","#18385F"],["Medium Blue","AK11184","#0A3847"],["Light Prussian Blue","AK11186","#132E41"],["Oxford","AK11188","#202731"],["Dark Prussian Blue","AK11189","#0B0D1A"],["Dark Sea Blue","AK11190","#0D1814"],["Gold","AK11191","#C4A24A"],["Brass","AK11194","#B08E42"],["Bronze","AK11196","#8A5A34"],["Copper","AK11197","#A55E38"],["Aluminium","AK11207","#B5B7B9"],["Dark Aluminium","AK11208","#6C6E70"],["Silver","AK11209","#A8AAAD"],["Natural Steel","AK11210","#8C8E90"],["Gun Metal","AK11212","#484C50"]
+ ],
+ "Citadel": [
+  ["Corax White","Base","#B6BBC0"],["Ceramite White","Base","#ffffff"],["White Scar","Layer","#EBEEF0"],["Averland Sunset","Base","#C58336"],["Flash Gitz Yellow","Layer","#F4B809"],["Dorn Yellow","Layer","#F1D985"],["Balor Brown","Layer","#966326"],["Jokaero Orange","Base","#BA613F"],["Fire Dragon Bright","Layer","#F36C2B"],["Troll Slayer Orange","Layer","#E6491B"],["Mephiston Red","Base","#912724"],["Khorne Red","Base","#602025"],["Evil Sunz Scarlet","Layer","#B52A2D"],["Wild Rider Red","Layer","#E03F39"],["Screamer Pink","Base","#5C1E33"],["Emperors Children","Layer","#E2639B"],["Naggaroth Night","Base","#221C34"],["Xereus Purple","Layer","#3A2746"],["Genestealer Purple","Layer","#744F94"],["Phoenician Purple","Base","#302546"],["Daemonette Hide","Base","#4B435C"],["Kantor Blue","Base","#142134"],["Macragge Blue","Base","#1C3167"],["Night Lords Blue","Base","#111A28"],["Altdorf Guard Blue","Layer","#233D7D"],["Calgar Blue","Layer","#4E6FC0"],["Caledor Sky","Base","#0A4C94"],["Teclis Blue","Layer","#0C72B6"],["Lothern Blue","Layer","#3394C3"],["Thousand Sons Blue","Base","#014C72"],["Stegadon Scale Green","Base","#192D38"],["Incubi Darkness","Base","#13252B"],["Kabalite Green","Layer","#034C44"],["Sotek Green","Layer","#00556B"],["Temple Guard Blue","Layer","#0295B6"],["Caliban Green","Base","#182E28"],["Warpstone Glow","Layer","#075E2E"],["Moot Green","Layer","#5D9A32"],["Castellan Green","Base","#313324"],["Death Guard Green","Base","#646447"],["Deathworld Forest","Base","#4D492E"],["Elysian Green","Layer","#6A6932"],["Nurgling Green","Layer","#82885A"],["Ushabti Bone","Layer","#BFA781"],["Zandri Dust","Base","#9A7D60"],["Karak Stone","Layer","#937E69"],["Steel Legion Drab","Base","#675241"],["Baneblade Brown","Layer","#736153"],["Rakarth Flesh","Base","#917F76"],["Morghast Bone","Base","#BA9F81"],["XV-88","Base","#745438"],["Mournfang Brown","Base","#523322"],["Rhinox Hide","Base","#211413"],["Dryad Bark","Base","#332827"],["Doombull Brown","Layer","#461B15"],["Bugmans Glow","Base","#855751"],["Cadian Fleshtone","Layer","#A86C5A"],["Kislev Flesh","Layer","#C6906D"],["Ratskin Flesh","Base","#AF5C3C"],["Bestigor Flesh","Layer","#D4793F"],["Celestra Grey","Base","#92A0A2"],["Administratum Grey","Layer","#888C8F"],["Dawnstone","Layer","#595F68"],["Mechanicus Standard Grey","Base","#404951"],["Eshin Grey","Layer","#2E3034"],["Dark Reaper","Layer","#2A3740"],["The Fang","Base","#303D57"],["Fenrisian Grey","Layer","#5D7B94"],["Grey Seer","Base","#9CA0A1"],["Corvus Black","Base","#191C20"],["Abaddon Black","Base","#141314"],["Leadbelcher","Metal","#888d8f"],["Ironbreaker","Metal","#a1a6a9"],["Runefang Steel","Metal","#A8AAAD"],["Balthasar Gold","Metal","#9E7C3A"],["Retributor Armour","Metal","#c39e81"],["Auric Armour Gold","Metal","#D0B15A"],["Warplock Bronze","Metal","#6E5A48"],["Hashut Copper","Metal","#A55E38"],["Nuln Oil","Shade","#14100e"],["Agrax Earthshade","Shade","#5a573f"],["Reikland Fleshshade","Shade","#7a3b2a"],["Drakenhof Nightshade","Shade","#1c2f45"],["Biel-Tan Green","Shade","#14402a"],["Carroburg Crimson","Shade","#5a1526"],["Druchii Violet","Shade","#2e1c46"],["Seraphim Sepia","Shade","#6a4a26"],["Casandora Yellow","Shade","#8a6a12"],["Fuegan Orange","Shade","#7a3212"],["Coelia Greenshade","Shade","#14493f"],["Athonian Camoshade","Shade","#4a4a24"],["Black Templar","Contrast","#1a1a1c"],["Black Legion","Contrast","#232529"],["Blood Angels Red","Contrast","#7a1012"],["Flesh Tearers Red","Contrast","#7a1418"],["Ultramarines Blue","Contrast","#1a3a72"],["Talassar Blue","Contrast","#14507a"],["Leviadon Blue","Contrast","#123a52"],["Dark Angels Green","Contrast","#123a24"],["Militarum Green","Contrast","#3a4a2a"],["Creed Camo","Contrast","#6a6438"],["Aggaros Dunes","Contrast","#b09858"],["Snakebite Leather","Contrast","#7a4a1c"],["Gore-Grunta Fur","Contrast","#8a5a30"],["Cygor Brown","Contrast","#4a2e22"],["Iyanden Yellow","Contrast","#e0a010"],["Gryph-Hound Orange","Contrast","#c85018"],["Magos Purple","Contrast","#3a1c4a"],["Shyish Purple","Contrast","#2a1838"],["Volupus Pink","Contrast","#a01860"],["Basilicanum Grey","Contrast","#3a3f42"],["Space Wolves Grey","Contrast","#6a7f8c"],["Apothecary White","Contrast","#dcdcd2"],["Guilliman Flesh","Contrast","#c88a5e"],["Fyreslayer Flesh","Contrast","#c85a2a"],["Ork Flesh","Contrast","#4a7a2a"],["Aeldari Emerald","Contrast","#0a6a52"]
+ ],
+ "Army Painter": [
+  ["Matt White","WP3012","#FFFFFF"],["Brainmatter Beige","WP3011","#dedcd1"],["Ancient Stone","WP3088","#dcd5bc"],["Bony Spikes","WP3089","#e8e0c6"],["Daemonic Yellow","WP3093","#f6d010"],["Demigod Flames","WP3091","#C07818"],["Burning Ore","WP3098","#d04818"],["Lava Orange","WP3099","#E45A20"],["Dragon Red","WP1105","#a42022"],["Angelic Red","WP3104","#a41a1a"],["Legendary Red","WP3105","#C42024"],["Pure Red","WP1104","#D43030"],["Alien Purple","WP1128","#5c3c78"],["Cultist Purple","Fanatic","#583e70"],["Diabolic Plum","Fanatic","#54305c"],["Diviner Light","WP3138","#dc98c6"],["Night Sky","WP3013","#221F1F"],["Deep Ocean Blue","WP3031","#1c3244"],["Deep Azure","WP3037","#004954"],["Abyssal Blue","WP3032","#004f6b"],["Gothic Blue","WP3020","#2D3F77"],["Ultramarine Blue","WP3021","#274D8E"],["Alpha Blue","WP3022","#667ebe"],["Baron Blue","WP3023","#7d96cd"],["Crystal Blue","WP3028","#0074bb"],["Bright Sapphire","WP3030","#86cdf1"],["Arctic Gem","WP3029","#1195d3"],["Augur Blue","WP3024","#abbfe2"],["Aegis Aqua","WP3036","#3ab3d4"],["Aqua Alchemy","WP3047","#38b8a8"],["Aquamarine","WP3040","#6dc7c1"],["Amulet Aqua","WP3048","#7dd0c4"],["Angel Green","WP3049","#00412d"],["Greenskin","WP1111","#007D4D"],["Army Green","WP3068","#5a6a48"],["Camouflage Green","WP3069","#6a7a55"],["Autumn Sage","WP3064","#788b75"],["Afterglow","WP3060","#c6e580"],["Command Khaki","WP3077","#8a785a"],["Desert Yellow","WP3081","#aa9450"],["Barren Dune","WP3084","#c8b070"],["Burnt Turf","WP3083","#8a7a4a"],["Bootstrap Brown","WP3074","#5a4534"],["Leather Brown","WP3075","#6A5038"],["Brigandine Brown","WP3073","#3e2e20"],["Barbarian Flesh","WP3147","#e4a87e"],["Dorado Skin","WP3161","#9c8078"],["Ash Grey","WP3004","#84878c"],["Company Grey","WP3005","#bbbcc1"],["Brigade Grey","WP3006","#d0d1d3"],["Deep Grey","WP3002","#4d5265"],["Uniform Grey","WP3003","#696F7B"],["Matt Black","WP3001","#000000"],["Death Metal","Fanatic","#3A3D42"],["Cobalt Metal","Fanatic","#46608C"],["Dark Emerald","Fanatic","#306850"],["Bright Gold","WP3189","#D0B15A"],["Shining Silver","WP3191","#A8AAAD"],["Gun Metal","WP1131","#484C50"]
+ ],
+ "Scale75": [
+  ["White","SC-01","#D7D5DA"],["Nacre","SC-02","#B1A588"],["Mojave White","SC-62","#C8BD9F"],["White Sands","SC-09","#C5BFA7"],["Tenere Yellow","SC-10","#9A9039"],["Sol Yellow","SC-40","#C0A83B"],["Sahara Yellow","SC-11","#B48210"],["Kalahari Orange","SC-14","#AF4222"],["Mars Orange","SC-39","#BB582A"],["Antares Red","SC-37","#B7231A"],["Blood Red","SC-36","#972628"],["Deep Red","SC-35","#912C39"],["Fuchsia","SC-34","#B62337"],["Sunset Purple","SC-33","#7E3C68"],["Violet Blue","SC-56","#4F3A77"],["Abyssal Blue","SC-08","#2A2B2F"],["Deep Blue","SC-55","#2A3332"],["Navy Blue","SC-54","#336799"],["Cantabric Blue","SC-53","#264965"],["Tesla Blue","SC-52","#3742C3"],["Mediterranean Blue","SC-51","#1D5AA4"],["Sky Blue","SC-50","#2272B7"],["Caribbean Blue","SC-49","#38967E"],["Caspian Blue","SC-07","#2C414F"],["Bering Blue","SC-06","#2D5F6A"],["Adriatic Blue","SC-15","#09888E"],["Boreal Green","SC-42","#136142"],["Black Forest Green","SC-41","#2B734F"],["Irati Green","SC-43","#3FA134"],["Sherwood Green","SC-44","#96A33B"],["Ardenes Green","SC-45","#4C553C"],["Field Grey","SC-46","#626D5C"],["Spring Green","SC-47","#80BE43"],["Fall Green","SC-48","#B4BD32"],["Golden Skin","SC-19","#caa070"],["Basic Flesh","SC-20","#B37C5E"],["Pink Flesh","SC-21","#B47460"],["Gobi Brown","SC-12","#775632"],["Dubai Brown","SC-13","#754D39"],["Walnut","SC-29","#6D5849"],["Brown Leather","SC-31","#614740"],["Orange Leather","SC-28","#9F613D"],["Red Leather","SC-30","#423136"],["Black Leather","SC-32","#543F4C"],["Sandalwood","SC-26","#A0816F"],["Iroko","SC-27","#A78547"],["Birch","SC-25","#2D2B31"],["Graphite","SC-03","#81807E"],["Anthracite Grey","SC-04","#253545"],["Eclipse Grey","SC-16","#0F0D12"],["Petroleum Grey","SC-57","#4E433F"],["Graphene Grey","SC-58","#404348"],["Brown Grey","SC-59","#87766F"],["Rainy Grey","SC-60","#756867"],["Black","SC-00","#0D0B0D"]
+ ],
+ "GSW": [
+  ["Nuclear White","1778","#FFFFFF"],["Ivory Tusk","1843","#F4E0BF"],["Banana Split","1780","#EFE428"],["Cyber Yellow","1781","#F2D12C"],["Go Mango","1782","#FEA032"],["Mustard Yellow","1783","#946610"],["Flaming Orange","1784","#EB711B"],["Ember Orange","1785","#D84B20"],["Hellfire Red","1786","#CA150E"],["Cutthroat Red","1787","#8F1216"],["Majin Pink","1788","#D4638E"],["Lollipop Magenta","1839","#AD0060"],["Sangria Red","1789","#600A09"],["Liche Purple","1790","#431B57"],["Abyss Blue","1791","#00144D"],["Marine Blue","1792","#113F7B"],["Summersea Blue","1793","#0169B0"],["Zima Blue","1794","#47A4C1"],["Tropical Turquoise","1795","#33B0A6"],["Kraken Green","1796","#024C38"],["Forest Green","1797","#00380F"],["Hunter Green","1798","#007703"],["Warcry Green","1799","#3E6224"],["Camouflage Green","1800","#605F1C"],["Flubber Green","1820","#89B81A"],["Olivegrove Green","1821","#1C290F"],["Zombie Flesh","1822","#C9AE6B"],["Sun Bleached Bone","1823","#E4C7AA"],["Komodo Khaki","1824","#895929"],["Peach Flesh","1825","#E47700"],["Dwarven Flesh","1826","#FE7D49"],["Blushing Flesh","1827","#DA523C"],["Ochre Desert","1828","#DF8700"],["Leather Brown","1829","#AE6914"],["Foxhide Brown","1830","#C06001"],["Choco Brown","1831","#2A0A00"],["Redwood Brown","1832","#3E0D00"],["Bestial Brown","1833","#2D1C00"],["Quicksand Brown","1834","#7E4A1B"],["Wolven Grey","1835","#B0B6C6"],["Bluegrey Dusk","1836","#2B2C41"],["Moonstone Grey","1837","#8D8D8D"],["Slate Grey","1838","#565656"],["Mirage Blue","1840","#374359"],["Dark Umber","1841","#3A2E2E"],["Steel Grey","1842","#2A313B"],["Elven Flesh","1844","#F1AC83"],["Pale Flesh","1845","#EAB9A8"],["Black Stallion","1779","#000000"],["Gunmetal Grey","1860","#6f7377"],["Quicksilver","1861","#c7ccd0"],["Anthrax Metal","1862","#6a6a66"],["Tinmetal Grey","1865","#b7bcbf"]
+ ],
+ "Model Air": [
+  ["White","71.001","#f6f6f6"],["Medium Yellow","71.002","#f2c40b"],["Red RLM23","71.003","#9e1b1b"],["Blue","71.004","#22408c"],["Grey Blue","71.005","#26252d"],["Camouflage Light Green","71.006","#6b8a4a"],["Olive Green","71.007","#5c6338"],["Pale Blue","71.008","#7ea3bd"],["Eau de Nil (Duck Egg Green)","71.009","#b6c3a0"],["Interior Green","71.010","#6f7a3a"],["Dark Green RLM83","71.011","#3f5233"],["Dark Green","71.012","#33463a"],["Yellow Olive","71.013","#3b3c36"],["Gunship Green","71.014","#3a4a30"],["Dark Green RLM71","71.015","#43503a"],["USAF Olive Drab","71.016","#6b6647"],["Russian Green 4BO","71.017","#5f6a3d"],["Black Green","71.018","#24301f"],["Camouflage Dark Green","71.019","#343b29"],["Green Brown","71.020","#5a4a30"],["Black Green RLM70","71.021","#26332a"],["Light Green RLM82","71.022","#6a7b45"],["Hemp","71.023","#b7a86a"],["Khaki Brown","71.024","#8a6a3a"],["Dark Yellow (RAL7028)","71.025","#b5a06d"],["USA Flat Brown","71.026","#5a3a26"],["Light Brown","71.027","#8a5a3a"],["Sand Yellow","71.028","#cbb078"],["Dark Earth","71.029","#6e4a2e"],["Green Brown (Brown Green)","71.030","#6a5a3a"],["Middlestone","71.031","#b39a5c"],["Golden Brown","71.032","#8a5a2a"],["Yellow Ochre (RAL1006)","71.033","#e4a010"],["Sand Brown","71.034","#a56a3a"],["Camouflage Pale Brown","71.035","#755c48"],["Mahogany","71.036","#5a2c24"],["Mud Brown","71.037","#5a3a24"],["Camouflage Medium Brown","71.038","#6a4a2a"],["Hull Red","71.039","#5f2f2b"],["Burnt Umber","71.040","#382c1e"],["Armour Brown (RAL8017)","71.041","#45322e"],["Dark Brown RLM61","71.042","#4a3b2a"],["US Olive Drab","71.043","#5a5637"],["Grey RLM02","71.044","#6f7361"],["Cement Grey","71.045","#7d8471"],["Pale Blue Grey","71.046","#9aa8b0"],["Grey","71.047","#7d8285"],["Engine Gray","71.048","#3b3f42"],["Sea Grey","71.049","#7a8288"],["Light Gray","71.050","#82898f"],["Neutral Gray","71.051","#5c6165"],["Anthracite Grey","71.052","#383c3f"],["Dark Sea Gray","71.053","#434b4d"],["Dark Grey Blue","71.054","#474a51"],["Black Grey RLM66","71.055","#2e3234"],["Panzer Dark Grey (RAL7021)","71.056","#23282b"],["Black","71.057","#141414"],["Aluminium (Metallic)","71.062","#B5B7B9"],["Silver RLM01 (Metallic)","71.063","#A8AAAD"],["Chrome (Metallic)","71.064","#C7C9CD"],["Steel (Metallic)","71.065","#8C8E90"],["Gold (Metallic)","71.066","#C4A24A"],["Bright Brass (Metallic)","71.067","#B08E42"],["Copper (Metallic)","71.068","#A55E38"],["Rust (Metallic)","71.069","#8a4a2a"],["Signal Red (Metallic)","71.070","#a01f1f"],["Arctic Blue (Metallic)","71.071","#6a90b0"],["Gun Metal (Metallic)","71.072","#484C50"],["Black (Metallic)","71.073","#1B1B1E"],["Beige","71.074","#D9BE6F"],["Ivory","71.075","#c2b078"],["Skin Tone","71.076","#E9AC8D"],["Wood","71.077","#8A6A4A"],["Yellow RLM04","71.078","#F4C400"],["Tan Earth","71.079","#997457"],["Rust","71.080","#8A4A2A"],["Ochre","71.081","#C8901A"],["Fluorescent Red","71.082","#E42D3F"],["Orange","71.083","#E2621F"],["Fire Red","71.084","#C0341F"],["Ferrari Red","71.085","#B0201F"],["Light Red","71.086","#B32220"],["Steel Blue","71.087","#26506A"],["French Blue","71.088","#2559a8"],["Light Sea Blue","71.089","#4F86C6"],["Deep Sky","71.090","#2559A8"],["Signal Blue","71.091","#1E2460"],["Medium Olive (RAL6003)","71.092","#424632"],["NATO Green","71.093","#4a5240"],["Green Zinc Chromate","71.094","#9AA05A"],["Pale Green","71.095","#89AC76"],["Olive Grey","71.096","#40422D"],["Medium Gunship Gray","71.097","#4D5155"],["US Desert Armour 686","71.122","#b49a6a"],["Light Rust","71.129","#a85a30"],["Off-White","71.270","#fdf4e3"]
+ ],
+ "RAL Classic": [
+  ["Green beige","RAL 1000","#bebd7f"],["Beige","RAL 1001","#c2b078"],["Sand yellow","RAL 1002","#c6a664"],["Signal yellow","RAL 1003","#e5be01"],["Golden yellow","RAL 1004","#cda434"],["Honey yellow","RAL 1005","#a98307"],["Maize yellow","RAL 1006","#e4a010"],["Daffodil yellow","RAL 1007","#dc9d00"],["Brown beige","RAL 1011","#8a6642"],["Lemon yellow","RAL 1012","#c7b446"],["Oyster white","RAL 1013","#eae6ca"],["Ivory","RAL 1014","#e1cc4f"],["Light ivory","RAL 1015","#e6d690"],["Sulfur yellow","RAL 1016","#edff21"],["Saffron yellow","RAL 1017","#f5d033"],["Zinc yellow","RAL 1018","#f8f32b"],["Grey beige","RAL 1019","#9e9764"],["Olive yellow","RAL 1020","#999950"],["Rape yellow","RAL 1021","#f3da0b"],["Traffic yellow","RAL 1023","#fad201"],["Ochre yellow","RAL 1024","#aea04b"],["Luminous yellow","RAL 1026","#ffff00"],["Curry","RAL 1027","#9d9101"],["Melon yellow","RAL 1028","#f4a900"],["Broom yellow","RAL 1032","#d6ae01"],["Dahlia yellow","RAL 1033","#f3a505"],["Pastel yellow","RAL 1034","#efa94a"],["Pearl beige","RAL 1035","#6a5d4d"],["Pearl gold","RAL 1036","#705335"],["Sun yellow","RAL 1037","#f09f00"],["Yellow orange","RAL 2000","#ed760e"],["Red orange","RAL 2001","#c93c20"],["Vermilion","RAL 2002","#cb2821"],["Pastel orange","RAL 2003","#ff7514"],["Pure orange","RAL 2004","#f44611"],["Luminous orange","RAL 2005","#ff2301"],["Luminous bright orange","RAL 2007","#ffa420"],["Bright red orange","RAL 2008","#f75e25"],["Traffic orange","RAL 2009","#f54021"],["Signal orange","RAL 2010","#d84b20"],["Deep orange","RAL 2011","#ec7c26"],["Salmon orange","RAL 2012","#e55137"],["Pearl orange","RAL 2013","#c35831"],["Flame red","RAL 3000","#af2b1e"],["Signal red","RAL 3001","#a52019"],["Carmine red","RAL 3002","#a2231d"],["Ruby red","RAL 3003","#9b111e"],["Purple red","RAL 3004","#75151e"],["Wine red","RAL 3005","#5e2129"],["Black red","RAL 3007","#412227"],["Oxide red","RAL 3009","#642424"],["Brown red","RAL 3011","#781f19"],["Beige red","RAL 3012","#c1876b"],["Tomato red","RAL 3013","#a12312"],["Antique pink","RAL 3014","#d36e70"],["Light pink","RAL 3015","#ea899a"],["Coral red","RAL 3016","#b32821"],["Rose","RAL 3017","#e63244"],["Strawberry red","RAL 3018","#d53032"],["Traffic red","RAL 3020","#cc0605"],["Salmon pink","RAL 3022","#d95030"],["Luminous red","RAL 3024","#f80000"],["Luminous bright red","RAL 3026","#fe0000"],["Raspberry red","RAL 3027","#c51d34"],["Pure red","RAL 3028","#cb3234"],["Orient red","RAL 3031","#b32428"],["Pearl ruby red","RAL 3032","#721422"],["Pearl pink","RAL 3033","#b44c43"],["Red lilac","RAL 4001","#6d3f5b"],["Red violet","RAL 4002","#922b3e"],["Heather violet","RAL 4003","#de4c8a"],["Claret violet","RAL 4004","#641c34"],["Blue lilac","RAL 4005","#6c4675"],["Traffic purple","RAL 4006","#a03472"],["Purple violet","RAL 4007","#4a192c"],["Signal violet","RAL 4008","#924e7d"],["Pastel violet","RAL 4009","#a18594"],["Telemagenta","RAL 4010","#cf3476"],["Pearl violet","RAL 4011","#8673a1"],["Pearl blackberry","RAL 4012","#6c6874"],["Violet blue","RAL 5000","#354d73"],["Green blue","RAL 5001","#1f3438"],["Ultramarine blue","RAL 5002","#20214f"],["Sapphire blue","RAL 5003","#1d1e33"],["Black blue","RAL 5004","#18171c"],["Signal blue","RAL 5005","#1e2460"],["Brilliant blue","RAL 5007","#3e5f8a"],["Grey blue","RAL 5008","#26252d"],["Azure blue","RAL 5009","#025669"],["Gentian blue","RAL 5010","#0e294b"],["Steel blue","RAL 5011","#231a24"],["Light blue","RAL 5012","#3b83bd"],["Cobalt blue","RAL 5013","#1e213d"],["Pigeon blue","RAL 5014","#606e8c"],["Sky blue","RAL 5015","#2271b3"],["Traffic blue","RAL 5017","#063971"],["Turquoise blue","RAL 5018","#3f888f"],["Capri blue","RAL 5019","#1b5583"],["Ocean blue","RAL 5020","#1d334a"],["Water blue","RAL 5021","#256d7b"],["Night blue","RAL 5022","#252850"],["Distant blue","RAL 5023","#49678d"],["Pastel blue","RAL 5024","#5d9b9b"],["Pearl gentian blue","RAL 5025","#2a6478"],["Pearl night blue","RAL 5026","#102c54"],["Patina green","RAL 6000","#316650"],["Emerald green","RAL 6001","#287233"],["Leaf green","RAL 6002","#2d572c"],["Olive green","RAL 6003","#424632"],["Blue green","RAL 6004","#1f3a3d"],["Moss green","RAL 6005","#2f4538"],["Grey olive","RAL 6006","#3e3b32"],["Bottle green","RAL 6007","#343b29"],["Brown green","RAL 6008","#39352a"],["Fir green","RAL 6009","#31372b"],["Grass green","RAL 6010","#35682d"],["Reseda green","RAL 6011","#587246"],["Black green","RAL 6012","#343e40"],["Reed green","RAL 6013","#6c7156"],["Yellow olive","RAL 6014","#47402e"],["Black olive","RAL 6015","#3b3c36"],["Turquoise green","RAL 6016","#1e5945"],["May green","RAL 6017","#4c9141"],["Yellow green","RAL 6018","#57a639"],["Pastel green","RAL 6019","#bdecb6"],["Chrome green","RAL 6020","#2e3a23"],["Pale green","RAL 6021","#89ac76"],["Olive drab","RAL 6022","#25221b"],["Traffic green","RAL 6024","#308446"],["Fern green","RAL 6025","#3d642d"],["Opal green","RAL 6026","#015d52"],["Light green","RAL 6027","#84c3be"],["Pine green","RAL 6028","#2c5545"],["Mint green","RAL 6029","#20603d"],["Signal green","RAL 6032","#317f43"],["Mint turquoise","RAL 6033","#497e76"],["Pastel turquoise","RAL 6034","#7fb5b5"],["Pearl green","RAL 6035","#1c542d"],["Pearl opal green","RAL 6036","#193737"],["Pure green","RAL 6037","#008f39"],["Luminous green","RAL 6038","#00bb2d"],["Squirrel grey","RAL 7000","#78858b"],["Silver grey","RAL 7001","#8a9597"],["Olive grey","RAL 7002","#817f68"],["Moss grey","RAL 7003","#7d7f7d"],["Signal grey","RAL 7004","#9c9c9c"],["Mouse grey","RAL 7005","#6c6e6b"],["Beige grey","RAL 7006","#766a5e"],["Khaki grey","RAL 7008","#745e3d"],["Green grey","RAL 7009","#5e6153"],["Tarpaulin grey","RAL 7010","#4c514a"],["Iron grey","RAL 7011","#434b4d"],["Basalt grey","RAL 7012","#4e5754"],["Brown grey","RAL 7013","#4c4a3c"],["Slate grey","RAL 7015","#434750"],["Anthracite grey","RAL 7016","#293133"],["Black grey","RAL 7021","#23282b"],["Umbra grey","RAL 7022","#332f2c"],["Concrete grey","RAL 7023","#686c5e"],["Graphite grey","RAL 7024","#474a51"],["Granite grey","RAL 7026","#2f353b"],["Dunkelgelb (dark yellow)","RAL 7028","#b5a06d"],["Stone grey","RAL 7030","#8b8c7a"],["Blue grey","RAL 7031","#474b4e"],["Pebble grey","RAL 7032","#b8b799"],["Cement grey","RAL 7033","#7d8471"],["Yellow grey","RAL 7034","#8f8b66"],["Light grey","RAL 7035","#d7d7d7"],["Platinum grey","RAL 7036","#7f7679"],["Dusty grey","RAL 7037","#7d7f7d"],["Agate grey","RAL 7038","#b5b8b1"],["Quartz grey","RAL 7039","#6c6960"],["Window grey","RAL 7040","#9da1aa"],["Traffic grey A","RAL 7042","#8d948d"],["Traffic grey B","RAL 7043","#4e5452"],["Silk grey","RAL 7044","#cac4b0"],["Telegrey 1","RAL 7045","#909090"],["Telegrey 2","RAL 7046","#82898f"],["Telegrey 4","RAL 7047","#d0d0d0"],["Pearl mouse grey","RAL 7048","#898176"],["Green brown","RAL 8000","#826c34"],["Ochre brown","RAL 8001","#955f20"],["Signal brown","RAL 8002","#6c3b2a"],["Clay brown","RAL 8003","#734222"],["Copper brown","RAL 8004","#8e402a"],["Fawn brown","RAL 8007","#59351d"],["Olive brown","RAL 8008","#6f4f28"],["Nut brown","RAL 8011","#5b3a29"],["Red brown","RAL 8012","#592321"],["Sepia brown","RAL 8014","#382c1e"],["Chestnut brown","RAL 8015","#633a34"],["Mahogany brown","RAL 8016","#4c2f27"],["Chocolate brown","RAL 8017","#45322e"],["Grey brown","RAL 8019","#403a3a"],["Black brown","RAL 8022","#212121"],["Orange brown","RAL 8023","#a65e2e"],["Beige brown","RAL 8024","#79553d"],["Pale brown","RAL 8025","#755c48"],["Terra brown","RAL 8028","#4e3b31"],["Pearl copper","RAL 8029","#763c28"],["Cream","RAL 9001","#fdf4e3"],["Grey white","RAL 9002","#e7ebda"],["Signal white","RAL 9003","#f4f4f4"],["Signal black","RAL 9004","#282828"],["Jet black","RAL 9005","#0a0a0a"],["White aluminium","RAL 9006","#a5a5a5"],["Grey aluminium","RAL 9007","#8f8f8f"],["Pure white","RAL 9010","#ffffff"],["Graphite black","RAL 9011","#1c1c1c"],["Traffic white","RAL 9016","#f6f6f6"],["Traffic black","RAL 9017","#1e1e1e"],["Papyrus white","RAL 9018","#d7d7d7"],["Pearl light grey","RAL 9022","#9c9c9c"],["Pearl dark grey","RAL 9023","#828282"]
+ ],
+ "FS 595": [
+  ["Gloss Insignia White","FS 17875","#f4f4f0"],["Semi-gloss Insignia White","FS 27875","#f2f2ee"],["Flat White","FS 37875","#efefeb"],["Gloss Black","FS 17038","#0e0e10"],["Semi-gloss Black","FS 27038","#111113"],["Flat Black","FS 37038","#121214"],["Gloss Insignia Red","FS 11136","#a1191f"],["Insignia Red","FS 31136","#a3212a"],["Flat Insignia Red","FS 31350","#8f2e2b"],["Gloss International Orange","FS 12197","#e35c1f"],["Flat International Orange","FS 32246","#d1683b"],["Gloss Insignia Yellow","FS 13538","#f4c400"],["Flat Insignia Yellow","FS 33538","#dcb63a"],["Gloss Yellow","FS 13655","#f2cf3b"],["Flat Yellow","FS 33531","#c9b25c"],["Gloss Blue Angel Blue","FS 15050","#0a2f66"],["Insignia Blue","FS 15044","#1b2a52"],["Flat Insignia Blue","FS 35044","#26314f"],["Gloss Light Blue","FS 15102","#0f5c8c"],["Air Superiority Blue","FS 35450","#7196b0"],["Flat Light Blue","FS 35414","#7ea3bd"],["Gloss Dark Green","FS 14062","#1f4632"],["Field Green","FS 34095","#5c5f43"],["Medium Green","FS 34102","#4a5b3a"],["Interior Green","FS 34151","#8a9a6b"],["Dark Green (RAF)","FS 34079","#3a4a2f"],["Euro I Green","FS 34092","#414c3a"],["Olive Drab","FS 34087","#5a5637"],["Faded Olive Drab","FS 34088","#6b6647"],["Field Drab","FS 30118","#6b5842"],["Earth Brown","FS 30099","#4f3f31"],["Dark Tan","FS 30219","#a2794e"],["Desert Sand","FS 33711","#c7a35a"],["Radome Tan","FS 33613","#d6c48a"],["Camouflage Gray","FS 36622","#b7b5a6"],["Light Gull Gray","FS 36440","#9a9a94"],["Dark Gull Gray","FS 36231","#565a5b"],["Ocean Gray","FS 36173","#5c6165"],["Neutral Gray","FS 36270","#7f8489"],["Aircraft Gray","FS 16473","#b5b9bc"],["Gunship Gray","FS 36118","#4d5155"],["Engine Gray","FS 36076","#3b3f42"],["Ghost Gray","FS 36375","#a9aeb3"],["Light Ghost Gray","FS 36495","#c0c4c8"],["Dark Ghost Gray","FS 36320","#7d838a"],["Blue Gray","FS 35237","#63737f"],["Haze Gray","FS 36270","#82868b"],["ADC Gray","FS 16473","#b3b7ba"],["Forest Green","FS 34079","#37432c"],["SAC Bomber Green","FS 34159","#8b9270"],["Aircraft Cream","FS 33481","#e0d3a0"],["Interior Bronze Green","FS 34092","#3e4a34"],["Gloss Gray","FS 16081","#4b4f52"]
+ ]
+};
+for(const b in PAINTS){ PAINTS[b]=PAINTS[b].map(p=>[p[0],p[1],(''+p[2]).slice(0,7)]); }
+
+function hex2rgb(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function rgb2hex(r,g,b){const t=x=>('0'+Math.round(x).toString(16)).slice(-2);return '#'+t(r)+t(g)+t(b);}
+function rgb2lab(r,g,b){r/=255;g/=255;b/=255;r=r>0.04045?Math.pow((r+0.055)/1.055,2.4):r/12.92;g=g>0.04045?Math.pow((g+0.055)/1.055,2.4):g/12.92;b=b>0.04045?Math.pow((b+0.055)/1.055,2.4):b/12.92;let x=(r*0.4124+g*0.3576+b*0.1805)/0.95047;let y=(r*0.2126+g*0.7152+b*0.0722);let z=(r*0.0193+g*0.1192+b*0.9505)/1.08883;const f=t=>t>0.008856?Math.cbrt(t):7.787*t+16/116;x=f(x);y=f(y);z=f(z);return [116*y-16,500*(x-y),200*(y-z)];}
+function ciede2000(l1,l2){const [L1,a1,b1]=l1,[L2,a2,b2]=l2;const avgLp=(L1+L2)/2;const C1=Math.sqrt(a1*a1+b1*b1),C2=Math.sqrt(a2*a2+b2*b2);const avgC=(C1+C2)/2;const G=0.5*(1-Math.sqrt(Math.pow(avgC,7)/(Math.pow(avgC,7)+Math.pow(25,7))));const a1p=a1*(1+G),a2p=a2*(1+G);const C1p=Math.sqrt(a1p*a1p+b1*b1),C2p=Math.sqrt(a2p*a2p+b2*b2);const avgCp=(C1p+C2p)/2;let h1p=Math.atan2(b1,a1p)*180/Math.PI;if(h1p<0)h1p+=360;let h2p=Math.atan2(b2,a2p)*180/Math.PI;if(h2p<0)h2p+=360;let dhp;if(Math.abs(h1p-h2p)<=180)dhp=h2p-h1p;else dhp=(h2p<=h1p)?h2p-h1p+360:h2p-h1p-360;const dLp=L2-L1,dCp=C2p-C1p,dHp=2*Math.sqrt(C1p*C2p)*Math.sin(dhp*Math.PI/360);let avgHp;if(Math.abs(h1p-h2p)>180)avgHp=(h1p+h2p+360)/2;else avgHp=(h1p+h2p)/2;const T=1-0.17*Math.cos((avgHp-30)*Math.PI/180)+0.24*Math.cos(2*avgHp*Math.PI/180)+0.32*Math.cos((3*avgHp+6)*Math.PI/180)-0.20*Math.cos((4*avgHp-63)*Math.PI/180);const dRo=30*Math.exp(-Math.pow((avgHp-275)/25,2));const Rc=2*Math.sqrt(Math.pow(avgCp,7)/(Math.pow(avgCp,7)+Math.pow(25,7)));const Sl=1+(0.015*Math.pow(avgLp-50,2))/Math.sqrt(20+Math.pow(avgLp-50,2));const Sc=1+0.045*avgCp,Sh=1+0.015*avgCp*T;const Rt=-Math.sin(2*dRo*Math.PI/180)*Rc;return Math.sqrt(Math.pow(dLp/Sl,2)+Math.pow(dCp/Sc,2)+Math.pow(dHp/Sh,2)+Rt*(dCp/Sc)*(dHp/Sh));}
+for(const b in PAINTS){PAINTS[b].forEach(p=>{p[3]=rgb2lab(...hex2rgb(p[2]));});}
+function bestMatch(lab,brand){let best=null,bd=1e9;for(const p of PAINTS[brand]){const d=ciede2000(lab,p[3]);if(d<bd){bd=d;best=p;}}return {name:best[0],code:best[1],hex:best[2],de:bd};}
+const CIT_TYPES=["Base","Layer","Metal","Shade","Contrast"];
+function excludedTypes(){const s=new Set();const es=document.getElementById('exShade'),ec=document.getElementById('exContrast'),em=document.getElementById('exMetal');if(es&&es.checked)s.add('Shade');if(ec&&ec.checked)s.add('Contrast');if(em&&em.checked)s.add('Metal');return s;}
+function topMatches(lab,brand,n){const ex=excludedTypes();const maxDe=getMaxDe();let list=PAINTS[brand];if(brand==='Citadel'&&ex.size)list=list.filter(p=>!ex.has(p[1]));let arr=list.map(p=>({name:p[0],code:p[1],hex:p[2],de:ciede2000(lab,p[3])}));arr.sort((a,b)=>a.de-b.de);arr=arr.filter(m=>m.de<=maxDe);return arr.slice(0,n);}
+function deClass(d){return d<=2?'de-ok':(d<=5?'de-close':'de-far');}
+function getMaxDe(){const el=document.getElementById('maxDe');if(!el)return 999;const v=parseFloat(el.value);return (isNaN(v)||v<=0)?999:v;}
+function syncMaxDe(src){const a=document.getElementById('maxDe'),b=document.getElementById('maxDeCross');if(!a||!b)return;if(src==='cross')a.value=b.value;else b.value=a.value;}
+// ================= i18n =================
+var LANG=(function(){try{return localStorage.getItem('paintLang')||'ru';}catch(_){return 'ru';}})();
+var I18N={
+ ru:{lang:'Язык:',theme:'Тема:',theme_dark:'Тёмная',theme_light:'Светлая',theme_system:'Системная',
+  tab_analyze:'🖼️ Анализ изображения',tab_cross:'🔀 Таблица соответствий (топ-3)',tab_stock:'🗄️ Мой склад',tab_sources:'📚 Источники данных',
+  h2_load:'1️⃣ Загрузка изображения',
+  drop_text:'📁 Перетащи файл, <b>кликни</b> для выбора,<br>или <b>вставь из буфера</b> (Ctrl/⌘+V)',
+  url_ph:'https://... ссылка на изображение',btn_load:'Загрузить',
+  hint_cors:'💡 Для ссылок нужен доступ CORS, иначе цвета не считаются — тогда скачай файл и перетащи его.',
+  pick_hint:'🖌️ <b>Пипетка активна</b> (усреднение 5×5): наведи для предпросмотра, кликни — чтобы зафиксировать; затем «➕ В отчёт».',
+  h2_params:'2️⃣ Параметры анализа',
+  lbl_ncolors:'Число цветов:',lbl_trim:'Игнорировать почти-белый/чёрный фон',lbl_showde:'Показывать ΔE у совпадений',lbl_maxde:'Максимальный ΔE:',
+  btn_analyze:'🔍 Анализировать',pick_on:'🖌️ Пипетка: вкл',pick_off:'🖌️ Пипетка: выкл',btn_sample:'Пример',
+  hint_analyze:'В анализе — лучший аналог на бренд (8 линеек). Топ-3 — во вкладке соответствий.',
+  legend_de:'Легенда ΔE:',de_ok:'≤2 отличное',de_close:'2–5 близкое',de_far:'>5 заметная разница',
+  btn_copy:'📋 Копировать',btn_print:'🖨️ Печать / PDF',
+  results_empty:'Загрузи изображение и нажми «Анализировать».',
+  h2_report:'🧺 Собранная палитра (отчёт)',btn_csv:'⬇️ CSV',btn_clear:'🗑️ Очистить',
+  h2_cross:'🔀 Соответствие красок — топ-3 аналога в каждой линейке',
+  lbl_source:'Источник:',search_ph:'🔎 фильтр по названию/номеру',
+  lbl_exclude:'Исключить из совпадений (Citadel):',
+  hint_cross:'Выбери краску — ниже <b>по 3 ближайших аналога</b> в каждой хобби-линейке, а также <b>отдельные колонки-стандарты</b> <b style="color:#7fd0a0">RAL Classic</b> и <b style="color:#7fd0a0">FS 595</b> (топ-2 ближайших кода). Фильтр типа <b>Citadel</b> появляется, когда источник = Citadel.',
+  lbl_fulltable:'Полная таблица (топ-3) для линейки:',btn_build:'📋 Построить',
+  draghint:'🖱️ Колонки можно <b>перетаскивать</b> за заголовок. 👆 Клик по любой краске (строке или ячейке-аналогу) — <b>сделать её «Источником»</b> вверху; клик по <b>образцу</b> — зум, по <b>ΔE</b> — разбор различий.',
+  btn_resetcols:'↩︎ Сброс порядка',stock_hi:'подсветка склада',stock_only:'только со склада',maxde_cross:'Макс. ΔE:',legend_instock:'есть на складе ✓',
+  no_stock_rows:'Нет красок со склада для этой линейки. Добавьте краски на вкладке «Мой склад» или отключите фильтр.',
+  h2_addstock:'➕ Добавить краску на склад',code_ph:'Номер (напр. 70.951 / RAL 3020 / AK11033)',name_ph:'Название (из каталога)',
+  btn_add:'➕ Добавить',btn_clear_stock:'🗑️ Очистить',
+  h2_instock:'🗄️ На складе:',filter_ph:'🔎 фильтр по названию / номеру / производителю',btn_export:'⬇️ Экспорт JSON',btn_import:'⬆️ Импорт JSON',
+  st_manuf:'Производитель',st_number:'Номер',st_name:'Название',st_hex:'HEX',st_actions:'Действия',
+  st_empty:'Склад пуст. Добавь краски через форму выше.',st_nofilter:'Ничего не найдено по фильтру.',
+  h2_sources:'📚 Источники данных',
+  src_intro:'Каждая линейка приведена к достоверным данным: пары «номер↔название» — из официальных каталогов производителей, HEX — из измеренных свотчей сообщества (краска нанесена, сфотографирована, усреднена) либо из привязок к промышленным стандартам RAL/RLM/FS. Металлики заданы средними тонами по типу металла (условно). Ниже — все использованные источники.',
+  src_h_measured:'🎨 Измеренные HEX (свотчи)',src_h_catalog:'🗂️ Каталожные HEX (справочные)',src_h_official:'📖 Официальные каталоги (номера и названия)',src_h_std:'🏭 Промышленные стандарты',
+  src_note:'⚠️ Измеренные свотчи — приближение к реальной банке, но существенно точнее печатных каталогов и генеративных оценок. Металлики одним HEX точно не передаются (блеск/отражения) — используйте средние тоны как ориентир и проверяйте сухим мазком.',
+  footer:'Работает офлайн. Линейки: Vallejo (Model Color / Model Air / Game Color / Game Air), AK 3rd Gen, Citadel, Army Painter, Scale75, GSW, плюс промышленные стандарты <b>RAL Classic</b> и <b>FS 595</b>. 💡 Клик по <b>образцу</b> — свотч 100×100; клик по <b>ΔE</b> — разбор dL/da/db с легендой CIELAB и подсказкой по смешиванию. 🗄️ Вкладка «Мой склад» хранит ваши краски (офлайн). HEX — из измеренных свотчей и стандартов RAL/RLM/FS. Финальная проверка — сухим мазком.',
+  src_star:'★ Источник —',tag_std:'стандарт',col_top3:'(топ-3)',col_std:'(стандарт)',
+  no_match_de:'нет (ΔE>{d})',no_match_de2:'нет совпадений (ΔE>{d})',no_match_de3:'нет совпадения (ΔE>{d})',empty_filter:'Нет краски по фильтру.',
+  dlg_mix_title:'🧪 Подсказка по смешиванию ({b})',dlg_mix_direct:'Смешивание не улучшает результат — используйте <b>{n}</b> <span class="mono">{c}</span> напрямую.',
+  dlg_mix_expected:'Ожидаемый результат <span class="mono">{hex}</span> · <b>ΔE ≈ {d}</b> (лучше, чем один тон — ΔE {d0}).',
+  dlg_de_title:'ΔE {d} · детали',dlg_de_compare:'Сравнение целевого цвета и краски <b>{b} — {n}</b> <span class="mono">{c}</span>.',
+  dlg_target:'Цель (образец)',dlg_paint:'Краска',dlg_delta_axes:'Δ по осям (краска − цель)',
+  dl_light:'dL — светлота',da_axis:'da — зелёный↔красный',db_axis:'db — синий↔жёлтый',
+  di_lighter:'краска светлее',di_darker:'краска темнее',di_redder:'краснее',di_greener:'зеленее',di_yellower:'желтее',di_bluer:'синее',di_same:'практически совпадает',
+  dlg_legend:'Легенда CIELAB',
+  leg_L:'<b>L</b> — светлота (0 чёрный … 100 белый)',leg_a:'<b>a</b> — ось зелёный (−) ↔ красный (+)',leg_b:'<b>b</b> — ось синий (−) ↔ жёлтый (+)',leg_de:'<b>ΔE</b> — общее воспринимаемое различие: ≤2 отличное, 2–5 близкое, >5 заметное.',
+  dlg_sw_title:'Образец цвета',dlg_sw_sub:'производитель — название — номер по каталогу',
+  msg_add_notfound:'✗ Нельзя добавить: «{c}» не найдено в каталоге «{b}».',msg_already:'⚠ Уже на складе: {b} — {n} ({c}).',msg_added:'✓ Добавлено: {b} — {n} ({c}).',
+  msg_notfound:'✗ Не найдено в каталоге для «{b}». Проверь номер.',
+  confirm_clear:'Очистить весь склад? Это действие необратимо.',import_done:'Импортировано новых красок: ',import_fail:'Не удалось прочитать JSON.',
+  title_show_sw:'Показать образец',title_make_src:'Клик — сделать источником',title_make_src2:'Сделать источником в таблице соответствий',title_del:'Удалить со склада',title_instock:'Есть на складе',
+  need_image:'Сначала загрузи изображение.',cors_msg:'CORS: скачай файл и перетащи его.',preview_src:'📌 Выбранный цвет',preview_hover:'👁️ Предпросмотр (5×5)',btn_torep:'➕ В отчёт',rep_added:'✓ Добавлено',
+  color:'Цвет',too_little:'Мало данных.',draw_fail:'Не удалось нарисовать изображение.',load_fail:'Не удалось загрузить изображение (возможно CORS). Скачай файл и перетащи его.',
+  rep_sample:'Проба',rep_title:'Собранная палитра',img_layout:'Раскладка изображения',fn_palette:'палитра',fn_cross:'соответствия'},
+ en:{lang:'Language:',theme:'Theme:',theme_dark:'Dark',theme_light:'Light',theme_system:'System',
+  tab_analyze:'🖼️ Image analysis',tab_cross:'🔀 Cross-reference (top-3)',tab_stock:'🗄️ My stock',tab_sources:'📚 Data sources',
+  h2_load:'1️⃣ Load an image',
+  drop_text:'📁 Drag a file, <b>click</b> to choose,<br>or <b>paste from clipboard</b> (Ctrl/⌘+V)',
+  url_ph:'https://... image URL',btn_load:'Load',
+  hint_cors:'💡 URLs need CORS access, otherwise colors can\\u2019t be read — download the file and drag it instead.',
+  pick_hint:'🖌️ <b>Eyedropper active</b> (5×5 average): hover to preview, click to lock; then “➕ To report”.',
+  h2_params:'2️⃣ Analysis settings',
+  lbl_ncolors:'Number of colors:',lbl_trim:'Ignore near-white/black background',lbl_showde:'Show ΔE on matches',lbl_maxde:'Maximum ΔE:',
+  btn_analyze:'🔍 Analyze',pick_on:'🖌️ Eyedropper: on',pick_off:'🖌️ Eyedropper: off',btn_sample:'Sample',
+  hint_analyze:'Analysis shows the best match per brand (8 ranges). Top-3 is on the cross-reference tab.',
+  legend_de:'ΔE legend:',de_ok:'≤2 excellent',de_close:'2–5 close',de_far:'>5 noticeable difference',
+  btn_copy:'📋 Copy',btn_print:'🖨️ Print / PDF',
+  results_empty:'Load an image and click “Analyze”.',
+  h2_report:'🧺 Collected palette (report)',btn_csv:'⬇️ CSV',btn_clear:'🗑️ Clear',
+  h2_cross:'🔀 Paint matching — top-3 analogs in each range',
+  lbl_source:'Source:',search_ph:'🔎 filter by name/code',
+  lbl_exclude:'Exclude from matches (Citadel):',
+  hint_cross:'Pick a paint — below are the <b>3 closest analogs</b> in each hobby range, plus <b>separate standard columns</b> <b style="color:#7fd0a0">RAL Classic</b> and <b style="color:#7fd0a0">FS 595</b> (top-2 closest codes). The <b>Citadel</b> type filter appears when the source = Citadel.',
+  lbl_fulltable:'Full table (top-3) for range:',btn_build:'📋 Build',
+  draghint:'🖱️ Columns can be <b>dragged</b> by their header. 👆 Click any paint (a row or an analog cell) to <b>make it the “Source”</b> above; click a <b>swatch</b> to zoom, a <b>ΔE</b> to see the breakdown.',
+  btn_resetcols:'↩︎ Reset order',stock_hi:'stock highlight',stock_only:'only in stock',maxde_cross:'Max ΔE:',legend_instock:'in stock ✓',
+  no_stock_rows:'No stocked paints for this range. Add paints in the “My stock” tab or turn off the filter.',
+  h2_addstock:'➕ Add a paint to stock',code_ph:'Code (e.g. 70.951 / RAL 3020 / AK11033)',name_ph:'Name (from catalog)',
+  btn_add:'➕ Add',btn_clear_stock:'🗑️ Clear',
+  h2_instock:'🗄️ In stock:',filter_ph:'🔎 filter by name / code / manufacturer',btn_export:'⬇️ Export JSON',btn_import:'⬆️ Import JSON',
+  st_manuf:'Manufacturer',st_number:'Code',st_name:'Name',st_hex:'HEX',st_actions:'Actions',
+  st_empty:'Stock is empty. Add paints via the form above.',st_nofilter:'Nothing matches the filter.',
+  h2_sources:'📚 Data sources',
+  src_intro:'Every range uses trustworthy data: number↔name pairs come from official manufacturer catalogs, HEX values from community-measured swatches (paint applied, photographed, averaged) or from RAL/RLM/FS industrial-standard bindings. Metallics use averaged tones per metal type (approximate). All sources used are listed below.',
+  src_h_measured:'🎨 Measured HEX (swatches)',src_h_catalog:'🗂️ Catalog HEX (reference)',src_h_official:'📖 Official catalogs (numbers & names)',src_h_std:'🏭 Industrial standards',
+  src_note:'⚠️ Measured swatches approximate the real bottle but are far more accurate than printed charts or generative estimates. Metallics can\\u2019t be captured by a single HEX (gloss/reflections) — treat averaged tones as guidance and verify with a dry brush stroke.',
+  footer:'Works offline. Ranges: Vallejo (Model Color / Model Air / Game Color / Game Air), AK 3rd Gen, Citadel, Army Painter, Scale75, GSW, plus industrial standards <b>RAL Classic</b> and <b>FS 595</b>. 💡 Click a <b>swatch</b> for a 100×100 zoom; click a <b>ΔE</b> for a dL/da/db breakdown with a CIELAB legend and mixing hint. 🗄️ The “My stock” tab keeps your paints (offline). HEX from measured swatches and RAL/RLM/FS standards. Final check — a dry brush stroke.',
+  src_star:'★ Source —',tag_std:'standard',col_top3:'(top-3)',col_std:'(standard)',
+  no_match_de:'none (ΔE>{d})',no_match_de2:'no matches (ΔE>{d})',no_match_de3:'no match (ΔE>{d})',empty_filter:'No paint matches the filter.',
+  dlg_mix_title:'🧪 Mixing hint ({b})',dlg_mix_direct:'Mixing does not improve the result — use <b>{n}</b> <span class="mono">{c}</span> directly.',
+  dlg_mix_expected:'Expected result <span class="mono">{hex}</span> · <b>ΔE ≈ {d}</b> (better than a single tone — ΔE {d0}).',
+  dlg_de_title:'ΔE {d} · details',dlg_de_compare:'Comparing the target color with paint <b>{b} — {n}</b> <span class="mono">{c}</span>.',
+  dlg_target:'Target (sample)',dlg_paint:'Paint',dlg_delta_axes:'Δ per axis (paint − target)',
+  dl_light:'dL — lightness',da_axis:'da — green↔red',db_axis:'db — blue↔yellow',
+  di_lighter:'paint is lighter',di_darker:'paint is darker',di_redder:'redder',di_greener:'greener',di_yellower:'yellower',di_bluer:'bluer',di_same:'practically identical',
+  dlg_legend:'CIELAB legend',
+  leg_L:'<b>L</b> — lightness (0 black … 100 white)',leg_a:'<b>a</b> — green (−) ↔ red (+) axis',leg_b:'<b>b</b> — blue (−) ↔ yellow (+) axis',leg_de:'<b>ΔE</b> — overall perceived difference: ≤2 excellent, 2–5 close, >5 noticeable.',
+  dlg_sw_title:'Color swatch',dlg_sw_sub:'manufacturer — name — catalog number',
+  msg_add_notfound:'✗ Can\\u2019t add: “{c}” not found in the “{b}” catalog.',msg_already:'⚠ Already in stock: {b} — {n} ({c}).',msg_added:'✓ Added: {b} — {n} ({c}).',
+  msg_notfound:'✗ Not found in the “{b}” catalog. Check the code.',
+  confirm_clear:'Clear the whole stock? This cannot be undone.',import_done:'New paints imported: ',import_fail:'Could not read JSON.',
+  title_show_sw:'Show swatch',title_make_src:'Click to set as source',title_make_src2:'Set as source in the cross-reference table',title_del:'Remove from stock',title_instock:'In stock',
+  need_image:'Load an image first.',cors_msg:'CORS: download the file and drag it in.',preview_src:'📌 Selected color',preview_hover:'👁️ Preview (5×5)',btn_torep:'➕ To report',rep_added:'✓ Added',
+  color:'Color',too_little:'Not enough data.',draw_fail:'Could not draw the image.',load_fail:'Could not load the image (possibly CORS). Download the file and drag it in.',
+  rep_sample:'Sample',rep_title:'Collected palette',img_layout:'Image layout',fn_palette:'palette',fn_cross:'matches'}
+};
+function tf(k,p){let s=t(k);if(p)for(const key in p)s=s.split('{'+key+'}').join(p[key]);return s;}
+function tr(k){return t(k);}
+
+function t(k){const d=I18N[LANG]||I18N.ru;return (d[k]!=null)?d[k]:(I18N.ru[k]!=null?I18N.ru[k]:k);}
+function applyLang(){document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');const v=t(k);if(v!=null)el.innerHTML=v;});document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.getAttribute('data-i18n-ph'));if(v!=null)el.setAttribute('placeholder',v);});document.querySelectorAll('[data-i18n-title]').forEach(el=>{const v=t(el.getAttribute('data-i18n-title'));if(v!=null)el.setAttribute('title',v);});document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));const html=document.documentElement;html.setAttribute('lang',LANG);try{updatePickBtn();}catch(_){}}
+function updatePickBtn(){const b=document.getElementById('pickBtn');if(b)b.textContent=t(pickMode?'pick_on':'pick_off');}
+function setLang(l){LANG=l;try{localStorage.setItem('paintLang',l);}catch(_){}applyLang();try{renderStock();}catch(_){}try{buildCrossTable();}catch(_){}try{showCrossOne();}catch(_){}try{renderReport();}catch(_){}try{if(imgLoaded)analyze();}catch(_){}}
+function esc(s){return (''+s).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function deSpan(de,thex,brand,name,code,phex){return `<span class="de ${deClass(de)} clickde" data-thex="${thex}" data-phex="${phex}" data-brand="${esc(brand)}" data-name="${esc(name)}" data-code="${esc(code)}">ΔE ${de.toFixed(1)}</span>`;}
+function swTag(cls,hex,brand,name,code){return `<div class="${cls} clicksw" data-hex="${hex}" data-brand="${esc(brand)}" data-name="${esc(name)}" data-code="${esc(code)}" style="background:${hex}"></div>`;}
+function suggestMix(thex,brand){const tRgb=hex2rgb(thex),tLab=rgb2lab(...tRgb);const near=PAINTS[brand].map(p=>({p,de:ciede2000(tLab,p[3])})).sort((a,b)=>a.de-b.de).slice(0,8);const single=near[0];let best={de:single.de,kind:'single',a:single.p};for(let i=0;i<near.length;i++){for(let j=i+1;j<near.length;j++){const A=hex2rgb(near[i].p[2]),B=hex2rgb(near[j].p[2]);for(let w=10;w<=90;w+=10){const t=w/100;const mr=A[0]*t+B[0]*(1-t),mg=A[1]*t+B[1]*(1-t),mb=A[2]*t+B[2]*(1-t);const de=ciede2000(tLab,rgb2lab(mr,mg,mb));if(de<best.de-0.2){best={de,kind:'mix',a:near[i].p,b:near[j].p,wa:w,wb:100-w,hex:rgb2hex(mr,mg,mb)};}}}}return best;}
+function medianCut(pixels,depth,maxDepth){if(depth===maxDepth||pixels.length<=1){const avg=[0,0,0];pixels.forEach(p=>{avg[0]+=p[0];avg[1]+=p[1];avg[2]+=p[2];});const n=pixels.length||1;return [{color:[avg[0]/n,avg[1]/n,avg[2]/n],count:n}];}let rMin=255,rMax=0,gMin=255,gMax=0,bMin=255,bMax=0;for(const p of pixels){rMin=Math.min(rMin,p[0]);rMax=Math.max(rMax,p[0]);gMin=Math.min(gMin,p[1]);gMax=Math.max(gMax,p[1]);bMin=Math.min(bMin,p[2]);bMax=Math.max(bMax,p[2]);}const rR=rMax-rMin,gR=gMax-gMin,bR=bMax-bMin;const ch=(rR>=gR&&rR>=bR)?0:(gR>=bR?1:2);pixels.sort((a,b)=>a[ch]-b[ch]);const mid=Math.floor(pixels.length/2);return medianCut(pixels.slice(0,mid),depth+1,maxDepth).concat(medianCut(pixels.slice(mid),depth+1,maxDepth));}
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tabpage').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active');});
+
+const drop=document.getElementById('drop'),fileIn=document.getElementById('file'),urlIn=document.getElementById('url'),cvs=document.getElementById('preview'),ctx=cvs.getContext('2d',{willReadFrequently:true}),results=document.getElementById('results'),kSlider=document.getElementById('k'),kVal=document.getElementById('kVal'),toolbar=document.getElementById('toolbar'),pickBtn=document.getElementById('pickBtn'),pickHint=document.getElementById('pickHint'),pickResult=document.getElementById('pickResult'),reportBox=document.getElementById('reportBox'),palette=document.getElementById('palette'),rtable=document.getElementById('rtable');
+let imgLoaded=false,lastReport=[],pickMode=false,pickedHtml='',currentPick=null,collected=[];
+kSlider.oninput=()=>kVal.textContent=kSlider.value;
+drop.onclick=()=>fileIn.click();
+fileIn.onchange=e=>{if(e.target.files[0])loadFile(e.target.files[0]);};
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('hover');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('hover');}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)loadFile(f);});
+window.addEventListener('paste',e=>{for(const it of e.clipboardData.items){if(it.type.indexOf('image')===0){loadFile(it.getAsFile());return;}}const t=e.clipboardData.getData('text');if(t&&/^https?:\/\//.test(t)){urlIn.value=t.trim();loadUrl();}});
+document.getElementById('loadUrl').onclick=loadUrl;
+document.getElementById('analyze').onclick=analyze;
+document.getElementById('sample').onclick=()=>drawSample();
+document.getElementById('printBtn').onclick=()=>window.print();
+document.getElementById('copyAll').onclick=copyList;
+function loadFile(file){const r=new FileReader();r.onload=()=>drawImage(r.result);r.readAsDataURL(file);}
+function loadUrl(){const u=urlIn.value.trim();if(!u)return;drawImage(u,true);}
+function drawImage(src,cross){const img=new Image();if(cross)img.crossOrigin='anonymous';img.onload=()=>{const maxW=520,scale=Math.min(1,maxW/img.width);cvs.width=Math.max(1,Math.round(img.width*scale));cvs.height=Math.max(1,Math.round(img.height*scale));try{ctx.drawImage(img,0,0,cvs.width,cvs.height);cvs.style.display='block';imgLoaded=true;pickedHtml='';currentPick=null;pickResult.style.display='none';pickResult.innerHTML='';setPickMode(false);}catch(err){alert(t('draw_fail'));}};img.onerror=()=>alert(t('load_fail'));img.src=src;}
+function drawSample(){cvs.width=520;cvs.height=300;const bands=[['#5f6a3d',0],['#7a3b28',.2],['#c8b48a',.4],['#33383f',.6],['#95522f',.8]];bands.forEach(([c,x])=>{ctx.fillStyle=c;ctx.fillRect(x*520,0,520/bands.length,300);});cvs.style.display='block';imgLoaded=true;pickedHtml='';currentPick=null;pickResult.style.display='none';pickResult.innerHTML='';setPickMode(false);}
+function analyze(){if(!imgLoaded){alert(t('need_image'));return;}let data;try{data=ctx.getImageData(0,0,cvs.width,cvs.height).data;}catch(e){alert(t('cors_msg'));return;}const trim=document.getElementById('trim').checked;const px=[];for(let i=0;i<data.length;i+=4){const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];if(a<125)continue;if(trim){const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx>245&&mn>240)continue;if(mx<12)continue;}px.push([r,g,b]);}if(px.length<10){alert(t('too_little'));return;}const k=parseInt(kSlider.value);const depth=Math.ceil(Math.log2(k));let buckets=medianCut(px,0,depth).filter(b=>b.count>0);buckets.sort((a,b)=>b.count-a.count);buckets=buckets.slice(0,k);const total=buckets.reduce((s,b)=>s+b.count,0);render(buckets,total);}
+function brandCells(lab,showDe,srcHex){const maxDe=getMaxDe();let h='';for(const brand of Object.keys(PAINTS)){const m=bestMatch(lab,brand);if(m.de>maxDe){h+=`<div class="m" style="opacity:.5"><div class="brand">${brand}</div><span class="nomatch">${tf('no_match_de3',{d:maxDe})}</span></div>`;continue;}h+=`<div class="m"><div class="brand">${brand}</div><div class="prow">${swTag('csw',m.hex,brand,m.name,m.code)}<div><div class="pname">${m.name}</div><div class="pcode">${m.code}</div></div></div>${showDe?deSpan(m.de,srcHex||m.hex,brand,m.name,m.code,m.hex):''}</div>`;}return h;}
+function render(buckets,total){const showDe=document.getElementById('showDe').checked;lastReport=[];let html='';buckets.forEach((bk,idx)=>{const [r,g,b]=bk.color,hex=rgb2hex(r,g,b),lab=rgb2lab(r,g,b);const pct=(bk.count/total*100).toFixed(1);let rep={swatch:hex,pct,matches:{}};for(const brand of Object.keys(PAINTS)){const m=bestMatch(lab,brand);rep.matches[brand]=`${m.name} ${m.code} (ΔE ${m.de.toFixed(1)})`;}lastReport.push(rep);html+=`<div class="swatch-card"><div class="sc-head"><div class="bigsw" style="background:${hex}"></div><div class="sc-meta"><div><b>${t('color')} ${idx+1}</b> · <span class="hex">${hex.toUpperCase()}</span></div><div class="pct">доля ≈ ${pct}%</div></div></div><div class="matches">${brandCells(lab,showDe,hex)}</div></div>`;});results.innerHTML=html;toolbar.style.display='flex';}
+function renderPick(r,g,b,fixed){const showDe=document.getElementById('showDe').checked;const hex=rgb2hex(r,g,b),lab=rgb2lab(r,g,b);const addBtn=fixed?`<button id="addRep" style="margin-top:2px">${t('btn_torep')}</button>`:'';const html=`<div class="swatch-card" style="margin-bottom:0;border-color:${fixed?'#4a9de0':'#2a323c'}"><div class="sc-head"><div class="bigsw" style="background:${hex}"></div><div class="sc-meta"><div><b>${fixed?t('preview_src'):t('preview_hover')}</b> · <span class="hex">${hex.toUpperCase()}</span></div><div class="pct">RGB ${r}, ${g}, ${b}${fixed?' · 5×5':''}</div></div><div style="flex:1"></div>${addBtn}</div><div class="matches">${brandCells(lab,showDe,hex)}</div></div>`;pickResult.style.display='block';pickResult.innerHTML=html;if(fixed){pickedHtml=html;currentPick={r,g,b,hex};const ab=document.getElementById('addRep');if(ab)ab.onclick=addCurrentToReport;}}
+function canvasColorAt(cx0,cy0){const rect=cvs.getBoundingClientRect();const cx=Math.floor((cx0-rect.left)/rect.width*cvs.width);const cy=Math.floor((cy0-rect.top)/rect.height*cvs.height);if(cx<0||cy<0||cx>=cvs.width||cy>=cvs.height)return null;const x0=Math.max(0,cx-2),y0=Math.max(0,cy-2),x1=Math.min(cvs.width-1,cx+2),y1=Math.min(cvs.height-1,cy+2),w=x1-x0+1,h=y1-y0+1;try{const d=ctx.getImageData(x0,y0,w,h).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<125)continue;r+=d[i];g+=d[i+1];b+=d[i+2];n++;}if(n===0)return [0,0,0,0];return [Math.round(r/n),Math.round(g/n),Math.round(b/n),255];}catch(e){return 'cors';}}
+function setPickMode(on){pickMode=on;pickBtn.textContent=t(on?'pick_on':'pick_off');pickBtn.style.background=on?'#3a7d44':'';pickBtn.style.color=on?'#fff':'';pickHint.style.display=on?'block':'none';cvs.style.cursor=on?'crosshair':'default';if(!on&&pickedHtml){pickResult.innerHTML=pickedHtml;const ab=document.getElementById('addRep');if(ab)ab.onclick=addCurrentToReport;}}
+pickBtn.onclick=()=>{if(!imgLoaded){alert(t('need_image'));return;}setPickMode(!pickMode);};
+cvs.addEventListener('mousemove',e=>{if(!pickMode)return;const c=canvasColorAt(e.clientX,e.clientY);if(c==='cors'){pickResult.style.display='block';pickResult.innerHTML='<div class="empty">'+t('cors_msg')+'</div>';return;}if(c&&c[3]>=125)renderPick(c[0],c[1],c[2],false);});
+cvs.addEventListener('mouseleave',()=>{if(pickMode&&pickedHtml){pickResult.innerHTML=pickedHtml;const ab=document.getElementById('addRep');if(ab)ab.onclick=addCurrentToReport;}});
+cvs.addEventListener('click',e=>{if(!pickMode)return;const c=canvasColorAt(e.clientX,e.clientY);if(c&&c!=='cors'&&c[3]>=125)renderPick(c[0],c[1],c[2],true);});
+function addCurrentToReport(){if(!currentPick)return;const {r,g,b,hex}=currentPick,lab=rgb2lab(r,g,b);const row={hex,rgb:[r,g,b],matches:{}};for(const brand of Object.keys(PAINTS)){const m=bestMatch(lab,brand);row.matches[brand]={name:m.name,code:m.code,de:m.de,hex:m.hex};}collected.push(row);renderReport();const ab=document.getElementById('addRep');if(ab){ab.textContent=t('rep_added');setTimeout(()=>{if(ab)ab.textContent=t('btn_torep');},1200);}}
+function renderReport(){if(collected.length===0){reportBox.style.display='none';return;}reportBox.style.display='block';palette.innerHTML=collected.map((c,i)=>`<div class="pitem" style="background:${c.hex}" title="${c.hex.toUpperCase()}"><span data-i="${i}">×</span></div>`).join('');palette.querySelectorAll('span[data-i]').forEach(s=>s.onclick=()=>{collected.splice(+s.dataset.i,1);renderReport();});const brs=Object.keys(PAINTS);let th=`<tr><th>#</th><th>${t('rep_sample')}</th>`+brs.map(b=>`<th>${b}</th>`).join('')+`</tr>`;let rows='';collected.forEach((c,i)=>{let tds=brs.map(b=>{const m=c.matches[b];return `<td><span class="mini" style="background:${m.hex}"></span>${m.name} <span class="mono">${m.code}</span> <span class="de ${deClass(m.de)}">${m.de.toFixed(1)}</span></td>`;}).join('');rows+=`<tr><td>${i+1}</td><td><span class="mini" style="background:${c.hex}"></span><span class="mono">${c.hex.toUpperCase()}</span></td>${tds}</tr>`;});rtable.innerHTML=th+rows;}
+document.getElementById('repClear').onclick=()=>{collected=[];renderReport();};
+document.getElementById('repPrint').onclick=()=>window.print();
+document.getElementById('repCopy').onclick=()=>{let t=tr('rep_title')+'\n\n';collected.forEach((c,i)=>{t+=`${tr('rep_sample')} ${i+1} — ${c.hex.toUpperCase()} (RGB ${c.rgb.join(', ')})\n`;for(const b in c.matches){const m=c.matches[b];t+=`  • ${b}: ${m.name} ${m.code} (ΔE ${m.de.toFixed(1)})\n`;}t+='\n';});navigator.clipboard.writeText(t).then(()=>{const btn=document.getElementById('repCopy');const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);});};
+document.getElementById('repCsv').onclick=()=>{const brs=Object.keys(PAINTS);let csv=tr('rep_sample')+',HEX,R,G,B,'+brs.map(b=>`${b} название,${b} номер,${b} ΔE`).join(',')+'\n';collected.forEach((c,i)=>{let line=[i+1,c.hex.toUpperCase(),...c.rgb];brs.forEach(b=>{const m=c.matches[b];line.push('"'+m.name.replace(/"/g,'')+'"',m.code,m.de.toFixed(1));});csv+=line.join(',')+'\n';});const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=tr('fn_palette')+'.csv';a.click();};
+function copyList(){let t=tr('img_layout')+'\n\n';lastReport.forEach((r,i)=>{t+=`${tr('color')} ${i+1} — ${r.swatch.toUpperCase()} (≈${r.pct}%)\n`;for(const br in r.matches)t+=`  • ${br}: ${r.matches[br]}\n`;t+='\n';});navigator.clipboard.writeText(t).then(()=>{const btn=document.getElementById('copyAll');const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);});}
+
+const brands=Object.keys(PAINTS);
+const STANDARDS=['RAL Classic','FS 595'];
+const isStd=b=>STANDARDS.includes(b);
+const hobbyBrands=brands.filter(b=>!isStd(b));
+// custom column order for cross table, persisted per-brand in localStorage
+const COLORDER_KEY='paintColOrder_v1';
+let colOrders=(function(){try{const o=JSON.parse(localStorage.getItem(COLORDER_KEY)||'{}');return (o&&typeof o==='object')?o:{};}catch(_){return {};}})();
+function saveColOrders(){try{localStorage.setItem(COLORDER_KEY,JSON.stringify(colOrders));}catch(_){}}
+const srcBrand=document.getElementById('srcBrand'),srcPaint=document.getElementById('srcPaint'),paintSearch=document.getElementById('paintSearch'),crossOne=document.getElementById('crossOne'),tableBrand=document.getElementById('tableBrand'),crossTable=document.getElementById('crossTable'),srcType=document.getElementById('srcType'),tblType=document.getElementById('tblType');
+brands.forEach(b=>{srcBrand.innerHTML+=`<option>${b}</option>`;tableBrand.innerHTML+=`<option>${b}</option>`;});
+const typeOpts='<option value="all">Все типы</option>'+CIT_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('');
+srcType.innerHTML=typeOpts;tblType.innerHTML=typeOpts;
+document.getElementById('exShade').onchange=()=>{showCrossOne();buildCrossTable();};
+document.getElementById('exContrast').onchange=()=>{showCrossOne();buildCrossTable();};
+document.getElementById('exMetal').onchange=()=>{showCrossOne();buildCrossTable();};
+srcType.onchange=fillPaintList;tblType.onchange=buildCrossTable;
+function fillPaintList(){const brand=srcBrand.value,q=paintSearch.value.trim().toLowerCase();const isCit=(brand==='Citadel');srcType.style.display=isCit?'inline-block':'none';const tv=srcType.value;srcPaint.innerHTML='';PAINTS[brand].forEach((p,idx)=>{if(isCit&&tv!=='all'&&p[1]!==tv)return;if(q&&!(p[0].toLowerCase().includes(q)||(''+p[1]).toLowerCase().includes(q)))return;srcPaint.innerHTML+=`<option value="${idx}">${p[0]} — ${p[1]}</option>`;});showCrossOne();}
+function rankLines(matches,srcHex,brand){if(!matches.length)return `<div class="nomatch">${tf('no_match_de2',{d:getMaxDe()})}</div>`;return matches.map((m,i)=>{const hav=inStock(brand,m.name);return `<div class="rank assrc${hav?' instock':''}" data-brand="${esc(brand)}" data-code="${esc(m.code)}" data-name="${esc(m.name)}" data-hex="${m.hex}" title="${t('title_make_src')}"><span class="rnum">#${i+1}</span>${swTag('csw',m.hex,brand,m.name,m.code)}<div><div class="pname">${m.name}${hav?' <span class="stock-tick" title="'+t('title_instock')+'">✓</span>':''}</div><div class="pcode">${m.code} · ${deSpan(m.de,srcHex||m.hex,brand,m.name,m.code,m.hex)}</div></div></div>`;}).join('');}
+function showCrossOne(){const brand=srcBrand.value,idx=parseInt(srcPaint.value);if(isNaN(idx)||!PAINTS[brand][idx]){crossOne.innerHTML='<div class="empty">'+t('empty_filter')+'</div>';return;}const p=PAINTS[brand][idx],lab=p[3];let cells=`<div class="m" style="border-color:#4a9de0"><div class="brand" style="color:#e0c65f">${t('src_star')} ${brand}</div><div class="prow"><div class="csw clicksw" data-hex="${p[2]}" data-brand="${esc(brand)}" data-name="${esc(p[0])}" data-code="${esc(p[1])}" style="width:26px;height:26px;background:${p[2]}"></div><div><div class="pname">${p[0]}</div><div class="pcode">${p[1]} · ${p[2].toUpperCase()}</div></div></div></div>`;for(const b of hobbyBrands){if(b===brand)continue;const top=topMatches(lab,b,3);cells+=`<div class="m"><div class="brand">${b}</div>${rankLines(top,p[2],b)}</div>`;}for(const b of STANDARDS){if(b===brand)continue;const top=topMatches(lab,b,2);cells+=`<div class="m std"><div class="brand">${b}<span class="std-tag">${t('tag_std')}</span></div>${rankLines(top,p[2],b)}</div>`;}crossOne.innerHTML=`<div class="matches">${cells}</div>`;}
+srcBrand.onchange=fillPaintList;srcPaint.onchange=showCrossOne;paintSearch.oninput=fillPaintList;fillPaintList();
+function setAsSource(brand,code,name){if(!PAINTS[brand])return;srcBrand.value=brand;srcType.value='all';paintSearch.value='';fillPaintList();let idx=-1;if(name){const n=(''+name).trim().toLowerCase();idx=PAINTS[brand].findIndex(p=>(''+p[0]).trim().toLowerCase()===n);}if(idx<0&&code!=null){idx=PAINTS[brand].findIndex(p=>(''+p[1])===(''+code));}if(idx>=0)srcPaint.value=String(idx);showCrossOne();const panel=srcBrand.closest('.panel');if(panel){try{panel.scrollIntoView({behavior:'smooth',block:'start'});}catch(_){}panel.classList.add('src-flash');setTimeout(()=>panel.classList.remove('src-flash'),900);}}
+function cellTop3(lab,b,srcHex){const top=topMatches(lab,b,3);if(!top.length)return `<td><span class="nomatch">${tf('no_match_de',{d:getMaxDe()})}</span></td>`;return '<td>'+top.map((m,i)=>{const hav=inStock(b,m.name);return `<div class="cellrank assrc${hav?' instock':''}" data-brand="${esc(b)}" data-code="${esc(m.code)}" data-name="${esc(m.name)}" data-hex="${m.hex}" title="${t('title_make_src')}"><span class="rnum">#${i+1}</span> <span class="mini clicksw" data-hex="${m.hex}" data-brand="${esc(b)}" data-name="${esc(m.name)}" data-code="${esc(m.code)}" style="background:${m.hex}"></span>${m.name} <span class="mono">${m.code}</span> <span class="de ${deClass(m.de)} clickde" data-thex="${srcHex||m.hex}" data-phex="${m.hex}" data-brand="${esc(b)}" data-name="${esc(m.name)}" data-code="${esc(m.code)}">${m.de.toFixed(1)}</span>${hav?' <span class="stock-tick" title="'+t('title_instock')+'">✓</span>':''}</div>`;}).join('')+'</td>';}
+function cellStd(lab,b,srcHex,sep){const top=topMatches(lab,b,2);const cls='stdcol'+(sep?' sep':'');if(!top.length)return `<td class="${cls}"><span class="nomatch">${tf('no_match_de',{d:getMaxDe()})}</span></td>`;return `<td class="${cls}">`+top.map((m,i)=>{const hav=inStock(b,m.name);return `<div class="cellrank assrc${hav?' instock':''}" data-brand="${esc(b)}" data-code="${esc(m.code)}" data-name="${esc(m.name)}" data-hex="${m.hex}" title="${t('title_make_src')}"><span class="rnum">#${i+1}</span> <span class="mini clicksw" data-hex="${m.hex}" data-brand="${esc(b)}" data-name="${esc(m.name)}" data-code="${esc(m.code)}" style="background:${m.hex}"></span>${m.name} <span class="mono">${m.code}</span> <span class="de ${deClass(m.de)} clickde" data-thex="${srcHex||m.hex}" data-phex="${m.hex}" data-brand="${esc(b)}" data-name="${esc(m.name)}" data-code="${esc(m.code)}">${m.de.toFixed(1)}</span>${hav?' <span class="stock-tick" title="'+t('title_instock')+'">✓</span>':''}</div>`;}).join('')+'</td>';}
+function defaultColOrder(brand){return hobbyBrands.filter(b=>b!==brand).concat(STANDARDS.filter(b=>b!==brand));}
+function currentColOrder(brand){const def=defaultColOrder(brand);const saved=colOrders[brand];if(!saved||!Array.isArray(saved))return def;const filt=saved.filter(b=>def.includes(b));for(const b of def){if(!filt.includes(b))filt.push(b);}return filt;}
+function rowHasStock(lab,brand,pname,order){if(inStock(brand,pname))return true;for(const b of order){const n=isStd(b)?2:3;const top=topMatches(lab,b,n);if(top.some(m=>inStock(b,m.name)))return true;}return false;}
+function buildCrossTable(){const brand=tableBrand.value;const isCit=(brand==='Citadel');tblType.style.display=isCit?'inline-block':'none';const tv=tblType.value;const order=currentColOrder(brand);const stockOnly=(document.getElementById('stockOnly')||{}).checked;let ths='';order.forEach((b,i)=>{const std=isStd(b);const prevStd=i>0&&isStd(order[i-1]);const sep=std&&!prevStd;ths+=`<th class="draggable${std?' stdth':''}${sep?' sep':''}" draggable="true" data-col="${esc(b)}" data-idx="${i}">${b}${std?' <span class="mono">'+t('col_std')+'</span>':' '+t('col_top3')}</th>`;});let th=`<tr><th class="firstcol">${brand}${isCit?' <span class="mono">['+tv+']</span>':''}</th><th>HEX</th>`+ths+`</tr>`;let rows='';let shown=0;PAINTS[brand].forEach(p=>{if(isCit&&tv!=='all'&&p[1]!==tv)return;if(stockOnly&&!rowHasStock(p[3],brand,p[0],order))return;shown++;let tds='';order.forEach((b,i)=>{const prevStd=i>0&&isStd(order[i-1]);if(isStd(b)){tds+=cellStd(p[3],b,p[2],!prevStd);}else{tds+=cellTop3(p[3],b,p[2]);}});const havRow=inStock(brand,p[0]);rows+=`<tr><td class="assrc firstcol${havRow?' instock':''}" data-brand="${esc(brand)}" data-code="${esc(p[1])}" data-name="${esc(p[0])}" data-hex="${p[2]}" title="${t('title_make_src')}"><span class="mini clicksw" data-hex="${p[2]}" data-brand="${esc(brand)}" data-name="${esc(p[0])}" data-code="${esc(p[1])}" style="background:${p[2]}"></span><b>${p[0]}</b> <span class="mono">${p[1]}</span>${havRow?' <span class="stock-tick" title="'+t('title_instock')+'">✓</span>':''}</td><td class="mono">${p[2].toUpperCase()}</td>${tds}</tr>`;});if(stockOnly&&shown===0){rows=`<tr><td colspan="${order.length+2}" style="text-align:center;color:var(--muted);padding:14px">${t('no_stock_rows')}</td></tr>`;}crossTable.innerHTML=th+rows;attachColDrag(brand);}
+let dragCol=null;
+function attachColDrag(brand){const ths=crossTable.querySelectorAll('th.draggable');ths.forEach(th=>{th.addEventListener('dragstart',e=>{dragCol=th.dataset.col;th.classList.add('dragging');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragCol);}catch(_){}}); th.addEventListener('dragend',()=>{dragCol=null;crossTable.querySelectorAll('th.draggable').forEach(x=>x.classList.remove('dragging','drag-over'));}); th.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';th.classList.add('drag-over');}); th.addEventListener('dragleave',()=>th.classList.remove('drag-over')); th.addEventListener('drop',e=>{e.preventDefault();th.classList.remove('drag-over');const target=th.dataset.col;if(!dragCol||dragCol===target)return;const order=currentColOrder(brand).slice();const from=order.indexOf(dragCol),to=order.indexOf(target);if(from<0||to<0)return;order.splice(to,0,order.splice(from,1)[0]);colOrders[brand]=order;saveColOrders();buildCrossTable();});});}
+document.getElementById('buildTable').onclick=buildCrossTable;
+tableBrand.onchange=()=>{buildCrossTable();};
+document.getElementById('resetCols').onclick=()=>{delete colOrders[tableBrand.value];saveColOrders();buildCrossTable();};
+document.getElementById('xPrint').onclick=()=>window.print();
+document.getElementById('xCsv').onclick=()=>{const brand=tableBrand.value,order=currentColOrder(brand);const isCit=(brand==='Citadel');const tv=tblType.value;let head=`${brand},номер,HEX`;order.forEach(b=>{const n=isStd(b)?2:3;for(let i=1;i<=n;i++)head+=`,${b}${isStd(b)?' (стандарт)':''} #${i},${b} #${i} код,${b} #${i} ΔE`;});let csv=head+'\n';PAINTS[brand].forEach(p=>{if(isCit&&tv!=='all'&&p[1]!==tv)return;let line=['"'+p[0].replace(/"/g,'')+'"',p[1],p[2].toUpperCase()];order.forEach(b=>{const n=isStd(b)?2:3;const top=topMatches(p[3],b,n);for(let i=0;i<n;i++){const m=top[i];if(m)line.push('"'+m.name.replace(/"/g,'')+'"',m.code,m.de.toFixed(1));else line.push('','','');}});csv+=line.join(',')+'\n';});const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=tr('fn_cross')+'_'+brand.replace(/\s/g,'_')+'.csv';a.click();};
+buildCrossTable();
+
+// ================= DIALOGS: ΔE details + swatch zoom =================
+const modalBg=document.getElementById('modalBg'),modalBox=document.getElementById('modalBox');
+function openModal(html){modalBox.innerHTML=html;modalBg.classList.add('open');}
+function closeModal(){modalBg.classList.remove('open');}
+modalBg.addEventListener('click',e=>{if(e.target===modalBg)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+function labFmt(l){return `L=${l[0].toFixed(1)}  a=${l[1].toFixed(1)}  b=${l[2].toFixed(1)}`;}
+function signStr(v){return (v>=0?'+':'')+v.toFixed(1);}
+function deltaInterp(d,pos,neg){if(Math.abs(d)<0.5)return t('di_same');return t(d>0?pos:neg);}
+function openDeDialog(el){const thex=el.dataset.thex,phex=el.dataset.phex,brand=el.dataset.brand,name=el.dataset.name,code=el.dataset.code;
+  const tLab=rgb2lab(...hex2rgb(thex)),pLab=rgb2lab(...hex2rgb(phex));
+  const de=ciede2000(tLab,pLab);
+  const dL=pLab[0]-tLab[0],da=pLab[1]-tLab[1],db=pLab[2]-tLab[2];
+  let mixHtml='';const mix=suggestMix(thex,brand);
+  if(mix.kind==='mix'){mixHtml=`<div class="section"><h4>${tf('dlg_mix_title',{b:brand})}</h4>
+    <div class="mix-chip"><div class="csw2" style="background:${mix.a[2]}"></div><span class="pc">${mix.wa}%</span> ${mix.a[0]} <span class="mono">${mix.a[1]}</span></div>
+    <div class="mix-chip"><div class="csw2" style="background:${mix.b[2]}"></div><span class="pc">${mix.wb}%</span> ${mix.b[0]} <span class="mono">${mix.b[1]}</span></div>
+    <div class="lab-legend" style="margin-top:8px">${tf('dlg_mix_expected',{hex:mix.hex.toUpperCase(),d:mix.de.toFixed(1),d0:de.toFixed(1)})}</div></div>`;}
+  else{mixHtml=`<div class="section"><h4>${tf('dlg_mix_title',{b:brand})}</h4><div class="lab-legend">${tf('dlg_mix_direct',{n:esc(name),c:esc(code)})}</div></div>`;}
+  openModal(`<h3>${tf('dlg_de_title',{d:de.toFixed(1)})} <button class="close" onclick="closeModal()">\u2715</button></h3>
+    <div class="lab-legend">${tf('dlg_de_compare',{b:esc(brand),n:esc(name),c:esc(code)})}</div>
+    <div class="kv" style="margin-top:10px">
+      <span class="k">${t('dlg_target')}</span><span class="v">${thex.toUpperCase()} \u00b7 ${labFmt(tLab)}</span>
+      <span class="k">${t('dlg_paint')}</span><span class="v">${phex.toUpperCase()} \u00b7 ${labFmt(pLab)}</span>
+    </div>
+    <div class="section"><h4>${t('dlg_delta_axes')}</h4>
+      <div class="delta-row"><span class="di">${t('dl_light')}</span><span class="dv">${signStr(dL)} <span class="di">(${deltaInterp(dL,'di_lighter','di_darker')})</span></span></div>
+      <div class="delta-row"><span class="di">${t('da_axis')}</span><span class="dv">${signStr(da)} <span class="di">(${deltaInterp(da,'di_redder','di_greener')})</span></span></div>
+      <div class="delta-row"><span class="di">${t('db_axis')}</span><span class="dv">${signStr(db)} <span class="di">(${deltaInterp(db,'di_yellower','di_bluer')})</span></span></div>
+    </div>
+    <div class="section"><h4>${t('dlg_legend')}</h4>
+      <div class="lab-legend">${t('leg_L')}<br>${t('leg_a')}<br>${t('leg_b')}<br>${t('leg_de')}</div></div>
+    ${mixHtml}`);
+}
+function openSwDialog(el){const hex=el.dataset.hex,brand=el.dataset.brand,name=el.dataset.name,code=el.dataset.code;
+  const rgb=hex2rgb(hex),lab=rgb2lab(...rgb);
+  openModal(`<h3>${t('dlg_sw_title')} <button class="close" onclick="closeModal()">\u2715</button></h3>
+    <div class="bigswatch" style="background:${hex}"></div>
+    <div class="swtitle">${brand} — ${name} — ${code}</div>
+    <div class="swsub">${t('dlg_sw_sub')}</div>
+    <div class="kv">
+      <span class="k">HEX</span><span class="v">${hex.toUpperCase()}</span>
+      <span class="k">RGB</span><span class="v">${rgb[0]}, ${rgb[1]}, ${rgb[2]}</span>
+      <span class="k">LAB</span><span class="v">L=${lab[0].toFixed(1)}  a=${lab[1].toFixed(1)}  b=${lab[2].toFixed(1)}</span>
+    </div>`);
+}
+document.addEventListener('click',e=>{const de=e.target.closest('.clickde');if(de){e.stopPropagation();openDeDialog(de);return;}const sw=e.target.closest('.clicksw');if(sw){e.stopPropagation();openSwDialog(sw);return;}const as=e.target.closest('.assrc');if(as&&as.dataset&&as.dataset.brand){e.stopPropagation();setAsSource(as.dataset.brand,as.dataset.code,as.dataset.name);return;}});
+document.getElementById('maxDe').addEventListener('change',()=>{syncMaxDe('main');if(imgLoaded){try{analyze();}catch(err){}}try{showCrossOne();}catch(err){}try{buildCrossTable();}catch(err){}});
+{const mc=document.getElementById('maxDeCross');if(mc)mc.addEventListener('change',()=>{syncMaxDe('cross');if(imgLoaded){try{analyze();}catch(err){}}try{showCrossOne();}catch(err){}try{buildCrossTable();}catch(err){}});}
+{const so=document.getElementById('stockOnly');if(so)so.addEventListener('change',()=>{try{buildCrossTable();}catch(err){}});}
+
+// ================= МОЙ СКЛАД (paint inventory) =================
+const STOCK_KEY='paintStock_v1';
+const stBrand=document.getElementById('stBrand'),stCode=document.getElementById('stCode'),stName=document.getElementById('stName'),stCodeList=document.getElementById('stCodeList'),stPreview=document.getElementById('stPreview'),stTable=document.getElementById('stTable'),stEmpty=document.getElementById('stEmpty'),stCount=document.getElementById('stCount'),stFilter=document.getElementById('stFilter'),stSwatch=document.getElementById('stSwatch');
+let stSort={key:'brand',dir:1};
+let stock=loadStock();
+function loadStock(){try{const a=JSON.parse(localStorage.getItem(STOCK_KEY)||'[]');if(!Array.isArray(a))return [];return a.filter(x=>x&&x.brand&&(x.code!=null||x.name!=null)).map(x=>{if(!x.name){const p=PAINTS[x.brand]&&PAINTS[x.brand].find(y=>(''+y[1]).toLowerCase()===(''+x.code).toLowerCase());if(p)x.name=p[0];}return x;});}catch(_){return [];}}
+function saveStock(){try{localStorage.setItem(STOCK_KEY,JSON.stringify(stock));}catch(_){}}
+function stockKey(brand,name){return brand+'|'+(''+name).trim().toLowerCase();}
+function stockSet(){const s=new Set();try{stock.forEach(x=>s.add(stockKey(x.brand,x.name!=null?x.name:x.code)));}catch(_){}return s;}
+function inStock(brand,name){return stockSet().has(stockKey(brand,name));}
+function refreshTables(){try{showCrossOne();}catch(_){}try{buildCrossTable();}catch(_){}}
+function findPaint(brand,q){if(!PAINTS[brand])return null;const s=(''+q).trim().toLowerCase();if(!s)return null;const codeMatches=PAINTS[brand].filter(x=>(''+x[1]).trim().toLowerCase()===s);if(codeMatches.length===1)return codeMatches[0];const byName=PAINTS[brand].find(x=>(''+x[0]).trim().toLowerCase()===s);if(byName)return byName;return codeMatches.length?codeMatches[0]:null;}
+// resolve a paint by name (preferred, unique) then code
+function findPaintByNameCode(brand,name,code){if(!PAINTS[brand])return null;if(name){const n=(''+name).trim().toLowerCase();const p=PAINTS[brand].find(x=>(''+x[0]).trim().toLowerCase()===n);if(p)return p;}if(code!=null){const c=(''+code).trim().toLowerCase();const p=PAINTS[brand].find(x=>(''+x[1]).trim().toLowerCase()===c);if(p)return p;}return null;}
+// populate manufacturer dropdown
+brands.forEach(b=>{stBrand.innerHTML+=`<option${isStd(b)?' data-std="1"':''}>${b}</option>`;});
+function fillCodeList(){const brand=stBrand.value;stCodeList.innerHTML='';if(!PAINTS[brand])return;const codes=PAINTS[brand].map(p=>(''+p[1]).toLowerCase());const uniqueCodes=new Set(codes).size===codes.length;PAINTS[brand].forEach(p=>{const val=uniqueCodes?(''+p[1]):p[0];stCodeList.innerHTML+=`<option value="${esc(val)}">${esc(p[0])} — ${esc(''+p[1])}</option>`;});}
+function updatePreview(){const brand=stBrand.value,code=stCode.value;const p=findPaint(brand,code);if(p){stName.value=p[0];if(stSwatch)stSwatch.style.background=p[2];stPreview.innerHTML=`<b>${esc(brand)}</b> — ${esc(p[0])} — <span class="mono">${esc(''+p[1])}</span> · <span class="mono">${p[2].toUpperCase()}</span>`;}else{stName.value='';if(stSwatch)stSwatch.style.background='transparent';stPreview.innerHTML=code.trim()?`<span style="color:#e08a8a">${tf('msg_notfound',{b:esc(brand)})}</span>`:'';}}
+stBrand.onchange=()=>{fillCodeList();updatePreview();};
+stCode.oninput=updatePreview;
+fillCodeList();
+function addToStock(){const brand=stBrand.value,code=stCode.value.trim();const p=findPaint(brand,code);if(!p){stPreview.innerHTML=`<span style="color:#e08a8a">${tf('msg_add_notfound',{c:esc(code),b:esc(brand)})}</span>`;return;}const key=stockKey(brand,p[0]);if(stock.some(s=>stockKey(s.brand,s.name!=null?s.name:s.code)===key)){stPreview.innerHTML=`<span style="color:#e0c65f">${tf('msg_already',{b:esc(brand),n:esc(p[0]),c:esc(''+p[1])})}</span>`;return;}stock.push({brand,code:p[1],name:p[0]});saveStock();renderStock();refreshTables();stCode.value='';stName.value='';if(stSwatch)stSwatch.style.background='transparent';stPreview.innerHTML=`<span style="color:#5fd07d">${tf('msg_added',{b:esc(brand),n:esc(p[0]),c:esc(''+p[1])})}</span>`;}
+document.getElementById('stAdd').onclick=addToStock;
+stCode.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addToStock();}});
+function removeFromStock(i){stock.splice(i,1);saveStock();renderStock();refreshTables();}
+document.getElementById('stClear').onclick=()=>{if(!stock.length)return;if(confirm(t('confirm_clear'))){stock=[];saveStock();renderStock();refreshTables();}};
+function renderStock(){stCount.textContent=stock.length;const q=(stFilter.value||'').trim().toLowerCase();
+  if(!stock.length){stTable.innerHTML='';stEmpty.style.display='block';stEmpty.textContent=t('st_empty');return;}
+  // build rows with original index preserved
+  let rows=stock.map((s,i)=>{const p=findPaintByNameCode(s.brand,s.name,s.code);return {i,brand:s.brand,code:p?''+p[1]:''+(s.code||''),name:p?p[0]:(s.name||'(нет в каталоге)'),hex:p?p[2]:'#333333'};});
+  if(q)rows=rows.filter(r=>r.name.toLowerCase().includes(q)||r.code.toLowerCase().includes(q)||r.brand.toLowerCase().includes(q));
+  const key=stSort.key,dir=stSort.dir;
+  rows.sort((a,b)=>{let x=(''+a[key]).toLowerCase(),y=(''+b[key]).toLowerCase();return x<y?-dir:(x>y?dir:0);});
+  if(!rows.length){stTable.innerHTML='';stEmpty.style.display='block';stEmpty.textContent=t('st_nofilter');return;}
+  stEmpty.style.display='none';
+  const arr=k=>stSort.key===k?`<span class="arr">${stSort.dir>0?'▲':'▼'}</span>`:'';
+  let th=`<tr><th style="width:34px"></th><th data-sort="brand">${t('st_manuf')}${arr('brand')}</th><th data-sort="code">${t('st_number')}${arr('code')}</th><th data-sort="name">${t('st_name')}${arr('name')}</th><th>${t('st_hex')}</th><th class="actcol">${t('st_actions')}</th></tr>`;
+  let body='';
+  rows.forEach(r=>{const std=isStd(r.brand)?' <span class="std-tag">'+t('tag_std')+'</span>':'';
+    body+=`<tr><td><span class="mini clicksw" data-hex="${r.hex}" data-brand="${esc(r.brand)}" data-name="${esc(r.name)}" data-code="${esc(r.code)}" style="width:20px;height:20px;background:${r.hex}" title="${t('title_show_sw')}"></span></td><td>${esc(r.brand)}${std}</td><td class="mono">${esc(r.code)}</td><td>${esc(r.name)}</td><td class="mono">${r.hex.toUpperCase()}</td><td class="actcol"><button class="srcbtn" data-src="${r.i}" title="${t('title_make_src2')}">🔀</button><button class="del" data-del="${r.i}" title="${t('title_del')}">✕</button></td></tr>`;});
+  stTable.innerHTML=th+body;
+  stTable.querySelectorAll('th[data-sort]').forEach(h=>h.onclick=()=>{const k=h.dataset.sort;if(stSort.key===k)stSort.dir*=-1;else{stSort.key=k;stSort.dir=1;}renderStock();});
+  stTable.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>removeFromStock(+b.dataset.del));
+  stTable.querySelectorAll('[data-src]').forEach(b=>b.onclick=()=>{const s=stock[+b.dataset.src];if(!s)return;const tab=document.querySelector('.tab[data-tab="cross"]');if(tab)tab.click();setAsSource(s.brand,s.code,s.name);});}
+stFilter.oninput=renderStock;
+// export / import
+document.getElementById('stExport').onclick=()=>{const blob=new Blob([JSON.stringify(stock,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my_paint_stock.json';a.click();};
+document.getElementById('stImportBtn').onclick=()=>document.getElementById('stImport').click();
+document.getElementById('stImport').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const arr=JSON.parse(r.result);if(!Array.isArray(arr))throw 0;let added=0;arr.forEach(x=>{if(!x||!x.brand)return;const p=findPaintByNameCode(x.brand,x.name,x.code);if(!p)return;const key=stockKey(x.brand,p[0]);if(!stock.some(s=>stockKey(s.brand,s.name!=null?s.name:s.code)===key)){stock.push({brand:x.brand,code:p[1],name:p[0]});added++;}});saveStock();renderStock();refreshTables();alert(t('import_done')+added);}catch(_){alert(t('import_fail'));}e.target.value='';};r.readAsText(f);};
+// ================= THEME =================
+var THEME=(function(){try{return localStorage.getItem('paintTheme')||'dark';}catch(_){return 'dark';}})();
+function effectiveTheme(){if(THEME==='system'){try{return (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';}catch(_){return 'dark';}}return THEME;}
+function applyTheme(){const eff=effectiveTheme();if(eff==='light')document.documentElement.setAttribute('data-theme','light');else document.documentElement.removeAttribute('data-theme');document.querySelectorAll('#themeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.theme===THEME));}
+function setTheme(tm){THEME=tm;try{localStorage.setItem('paintTheme',tm);}catch(_){}applyTheme();}
+// wire segments
+document.querySelectorAll('#langSeg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+document.querySelectorAll('#themeSeg button').forEach(b=>b.onclick=()=>setTheme(b.dataset.theme));
+try{if(window.matchMedia){window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{if(THEME==='system')applyTheme();});}}catch(_){}
+applyLang();applyTheme();
+renderStock();refreshTables();
+// --- toggle in-stock highlight on/off ---
+(function(){const hi=document.getElementById('stockHi');if(!hi)return;function apply(){const off=!hi.checked;[crossTable,crossOne].forEach(el=>{if(!el)return;if(off)el.classList.add('nostockhi');else el.classList.remove('nostockhi');});}hi.addEventListener('change',apply);apply();})();
+
+</script>
+</body>
+</html>
