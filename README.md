@@ -51,11 +51,6 @@ You don’t need to hand-edit the code. Use the companion **Paint Catalog Editor
 - Your **stock, theme, language and column order** live only in **your browser** (`localStorage`).
 - Share your stock via **⬇️ Export JSON** / **⬆️ Import JSON**.
 
-### Deploy on GitHub Pages
-1. Put `index.html` in a public repo.
-2. **Settings → Pages → Deploy from a branch → `main` / root**.
-3. Your link: `https://<user>.github.io/<repo>/`. Update = replace `index.html`, same URL.
-
 ### Tech
 One self-contained `index.html` — HTML, CSS and JavaScript, **no external dependencies** and an inline base64 favicon. Just open it in any modern browser.
 
@@ -106,11 +101,6 @@ One self-contained `index.html` — HTML, CSS and JavaScript, **no external depe
 - Полностью работает **в браузере** — без сервера и трекинга, **офлайн**.
 - Ваши **склад, тема, язык и порядок колонок** хранятся только **в вашем браузере** (`localStorage`).
 - Обмен складом — **⬇️ Экспорт JSON** / **⬆️ Импорт JSON**.
-
-### Публикация на GitHub Pages
-1. Положите `index.html` в публичный репозиторий.
-2. **Settings → Pages → Deploy from a branch → `main` / root**.
-3. Ссылка: `https://<логин>.github.io/<репо>/`. Обновление = замена `index.html`, адрес тот же.
 
 ### Технологии
 Один самодостаточный `index.html` — HTML, CSS и JavaScript, **без внешних зависимостей**, со встроенным base64-favicon. Просто откройте в любом современном браузере.
