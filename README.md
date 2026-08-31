@@ -52,7 +52,7 @@ You don’t need to hand-edit the code. Use the companion **Paint Catalog Editor
 - Share your stock via **⬇️ Export JSON** / **⬆️ Import JSON**.
 
 ### Tech
-One self-contained `index.html` — HTML, CSS and JavaScript, **no external dependencies** and an inline base64 favicon. Just open it in any modern browser.
+One self-contained `index.html` — HTML, CSS and JavaScript, **no external dependencies**. Just open it in any modern browser.
 
 ---
 
@@ -103,7 +103,7 @@ One self-contained `index.html` — HTML, CSS and JavaScript, **no external depe
 - Обмен складом — **⬇️ Экспорт JSON** / **⬆️ Импорт JSON**.
 
 ### Технологии
-Один самодостаточный `index.html` — HTML, CSS и JavaScript, **без внешних зависимостей**, со встроенным base64-favicon. Просто откройте в любом современном браузере.
+Один самодостаточный `index.html` — HTML, CSS и JavaScript, **без внешних зависимостей**. Просто откройте в любом современном браузере.
 
 ---
 
